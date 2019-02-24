@@ -49,8 +49,6 @@ extern "C" {
     //to not include convolve.h, just forward declare what's needed.
     struct ConvolveParams;
     struct InterpFilterParams;
-    typedef int32_t tran_low_t;
-
 
     void apply_selfguided_restoration_c(const uint8_t *dat, int32_t width, int32_t height, int32_t stride, int32_t eps, const int32_t *xqd, uint8_t *dst, int32_t dst_stride, int32_t *tmpbuf, int32_t bit_depth, int32_t highbd);
     void apply_selfguided_restoration_avx2(const uint8_t *dat, int32_t width, int32_t height, int32_t stride, int32_t eps, const int32_t *xqd, uint8_t *dst, int32_t dst_stride, int32_t *tmpbuf, int32_t bit_depth, int32_t highbd);
@@ -173,19 +171,19 @@ extern "C" {
     RTCD_EXTERN void(*av1_fwd_txfm2d_16x8)(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
 
     void av1_fwd_txfm2d_4x16_c(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
-    void av1_fwd_txfm2d_4x16_sse4_1(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
+    void av1_fwd_txfm2d_4x16_avx2(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
     RTCD_EXTERN void(*av1_fwd_txfm2d_4x16)(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
 
     void av1_fwd_txfm2d_16x4_c(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
-    void av1_fwd_txfm2d_16x4_sse4_1(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
+    void av1_fwd_txfm2d_16x4_avx2(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
     RTCD_EXTERN void(*av1_fwd_txfm2d_16x4)(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
 
     void av1_fwd_txfm2d_4x8_c(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
-    void av1_fwd_txfm2d_4x8_sse4_1(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
+    void av1_fwd_txfm2d_4x8_avx2(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
     RTCD_EXTERN void(*av1_fwd_txfm2d_4x8)(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
 
     void av1_fwd_txfm2d_8x4_c(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
-    void av1_fwd_txfm2d_8x4_sse4_1(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
+    void av1_fwd_txfm2d_8x4_avx2(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
     RTCD_EXTERN void(*av1_fwd_txfm2d_8x4)(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
 
     void av1_fwd_txfm2d_32x16_c(int16_t *input, int32_t *output, uint32_t inputStride, TxType transform_type, uint8_t  bit_depth);
@@ -261,10 +259,15 @@ extern "C" {
     uint64_t dist_8x8_16bit_c(uint16_t *dst, int dstride, uint16_t *src, int sstride, int coeff_shift);
     uint64_t dist_8x8_16bit_avx2(uint16_t *dst, int dstride, uint16_t *src, int sstride, int coeff_shift);
     RTCD_EXTERN uint64_t(*dist_8x8_16bit)(uint16_t *dst, int dstride, uint16_t *src, int sstride, int coeff_shift);
-
+#if FAST_CDEF
+    uint64_t search_one_dual_c(int *lev0, int *lev1, int nb_strengths, uint64_t(**mse)[64], int sb_count, int fast, int start_gi, int end_gi);
+    uint64_t search_one_dual_avx2(int *lev0, int *lev1, int nb_strengths, uint64_t(**mse)[64], int sb_count, int fast, int start_gi, int end_gi);
+    RTCD_EXTERN uint64_t(*search_one_dual)(int *lev0, int *lev1, int nb_strengths, uint64_t(**mse)[64], int sb_count, int fast, int start_gi, int end_gi);
+#else
     uint64_t search_one_dual_c(int *lev0, int *lev1, int nb_strengths, uint64_t(**mse)[64], int sb_count, int fast);
     uint64_t search_one_dual_avx2(int *lev0, int *lev1, int nb_strengths, uint64_t(**mse)[64], int sb_count, int fast);
     RTCD_EXTERN uint64_t(*search_one_dual)(int *lev0, int *lev1, int nb_strengths, uint64_t(**mse)[64], int sb_count, int fast);
+#endif
 
     uint32_t aom_mse16x16_c(const uint8_t *src_ptr, int32_t  source_stride, const uint8_t *ref_ptr, int32_t  recon_stride, uint32_t *sse);
     uint32_t aom_mse16x16_avx2(const uint8_t *src_ptr, int32_t  source_stride, const uint8_t *ref_ptr, int32_t  recon_stride, uint32_t *sse);
@@ -407,7 +410,7 @@ extern "C" {
 
 
 
-    //void av1_inv_txfm_add_c(const tran_low_t *dqcoeff, uint8_t *dst, int32_t stride, const TxfmParam *txfm_param);
+    void av1_inv_txfm_add_c(const tran_low_t *dqcoeff, uint8_t *dst, int32_t stride, const TxfmParam *txfm_param);
     void av1_inv_txfm_add_ssse3(const tran_low_t *dqcoeff, uint8_t *dst, int32_t stride, const TxfmParam *txfm_param);
     RTCD_EXTERN void(*av1_inv_txfm_add)(const tran_low_t *dqcoeff, uint8_t *dst, int32_t stride, const TxfmParam *txfm_param);
 
@@ -1307,7 +1310,7 @@ extern "C" {
     RTCD_EXTERN void(*aom_highbd_dc_left_predictor_16x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_left_predictor_2x2_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_left_predictor_2x2 aom_highbd_dc_left_predictor_2x2_c
+    RTCD_EXTERN void(*aom_highbd_dc_left_predictor_2x2)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_left_predictor_32x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_left_predictor_32x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1331,11 +1334,11 @@ extern "C" {
 
     void aom_highbd_dc_left_predictor_4x4_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_left_predictor_4x4_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_left_predictor_4x4 aom_highbd_dc_left_predictor_4x4_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_left_predictor_4x4)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_left_predictor_4x8_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_left_predictor_4x8_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_left_predictor_4x8 aom_highbd_dc_left_predictor_4x8_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_left_predictor_4x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_left_predictor_64x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_left_predictor_64x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1351,7 +1354,7 @@ extern "C" {
 
     void aom_highbd_dc_left_predictor_8x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_left_predictor_8x16_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_left_predictor_8x16 aom_highbd_dc_left_predictor_8x16_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_left_predictor_8x16)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_left_predictor_8x32_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_left_predictor_8x32_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1359,11 +1362,11 @@ extern "C" {
 
     void aom_highbd_dc_left_predictor_8x4_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_left_predictor_8x4_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_left_predictor_8x4 aom_highbd_dc_left_predictor_8x4_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_left_predictor_8x4)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_left_predictor_8x8_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_left_predictor_8x8_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_left_predictor_8x8 aom_highbd_dc_left_predictor_8x8_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_left_predictor_8x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_predictor_16x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_predictor_16x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1386,7 +1389,7 @@ extern "C" {
     RTCD_EXTERN void(*aom_highbd_dc_predictor_16x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_predictor_2x2_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_predictor_2x2 aom_highbd_dc_predictor_2x2_c
+    RTCD_EXTERN void(*aom_highbd_dc_predictor_2x2)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_predictor_32x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_predictor_32x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1410,11 +1413,11 @@ extern "C" {
 
     void aom_highbd_dc_predictor_4x4_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_predictor_4x4_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_predictor_4x4 aom_highbd_dc_predictor_4x4_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_predictor_4x4)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_predictor_4x8_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_predictor_4x8_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_predictor_4x8 aom_highbd_dc_predictor_4x8_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_predictor_4x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_predictor_64x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_predictor_64x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1430,7 +1433,7 @@ extern "C" {
 
     void aom_highbd_dc_predictor_8x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_predictor_8x16_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_predictor_8x16 aom_highbd_dc_predictor_8x16_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_predictor_8x16)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_predictor_8x32_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_predictor_8x32_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1438,11 +1441,11 @@ extern "C" {
 
     void aom_highbd_dc_predictor_8x4_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_predictor_8x4_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_predictor_8x4 aom_highbd_dc_predictor_8x4_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_predictor_8x4)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_predictor_8x8_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_predictor_8x8_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_predictor_8x8 aom_highbd_dc_predictor_8x8_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_predictor_8x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_top_predictor_16x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_top_predictor_16x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1465,7 +1468,7 @@ extern "C" {
     RTCD_EXTERN void(*aom_highbd_dc_top_predictor_16x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_top_predictor_2x2_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_top_predictor_2x2 aom_highbd_dc_top_predictor_2x2_c
+    RTCD_EXTERN void(*aom_highbd_dc_top_predictor_2x2)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_top_predictor_32x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_top_predictor_32x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1489,11 +1492,11 @@ extern "C" {
 
     void aom_highbd_dc_top_predictor_4x4_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_top_predictor_4x4_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_top_predictor_4x4 aom_highbd_dc_top_predictor_4x4_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_top_predictor_4x4)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_top_predictor_4x8_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_top_predictor_4x8_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_top_predictor_4x8 aom_highbd_dc_top_predictor_4x8_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_top_predictor_4x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_top_predictor_64x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_top_predictor_64x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1509,30 +1512,27 @@ extern "C" {
 
     void aom_highbd_dc_top_predictor_8x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_top_predictor_8x16_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_top_predictor_8x16 aom_highbd_dc_top_predictor_8x16_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_top_predictor_8x16)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_top_predictor_8x32_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_top_predictor_8x32 aom_highbd_dc_top_predictor_8x32_c
+    RTCD_EXTERN void(*aom_highbd_dc_top_predictor_8x32)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_top_predictor_8x4_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_top_predictor_8x4_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_top_predictor_8x4 aom_highbd_dc_top_predictor_8x4_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_top_predictor_8x4)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_dc_top_predictor_8x8_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_dc_top_predictor_8x8_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_dc_top_predictor_8x8 aom_highbd_dc_top_predictor_8x8_sse2
+    RTCD_EXTERN void(*aom_highbd_dc_top_predictor_8x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
-    void aom_highbd_fdct8x8_c(const int16_t *input, tran_low_t *output, int32_t stride);
-    void aom_highbd_fdct8x8_sse2(const int16_t *input, tran_low_t *output, int32_t stride);
-#define aom_highbd_fdct8x8 aom_highbd_fdct8x8_sse2
 
     void aom_highbd_h_predictor_16x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_16x16_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_h_predictor_16x16 aom_highbd_h_predictor_16x16_sse2
+    RTCD_EXTERN void(*aom_highbd_h_predictor_16x16)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_h_predictor_16x32_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_16x32_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_h_predictor_16x32 aom_highbd_h_predictor_16x32_sse2
+    RTCD_EXTERN void(*aom_highbd_h_predictor_16x32)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_h_predictor_16x4_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_16x4_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1544,18 +1544,18 @@ extern "C" {
 
     void aom_highbd_h_predictor_16x8_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_16x8_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_h_predictor_16x8 aom_highbd_h_predictor_16x8_sse2
+    RTCD_EXTERN void(*aom_highbd_h_predictor_16x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_h_predictor_2x2_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_h_predictor_2x2 aom_highbd_h_predictor_2x2_c
+    RTCD_EXTERN void(*aom_highbd_h_predictor_2x2)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_h_predictor_32x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_32x16_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_h_predictor_32x16 aom_highbd_h_predictor_32x16_sse2
+    RTCD_EXTERN void(*aom_highbd_h_predictor_32x16)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_h_predictor_32x32_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_32x32_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_h_predictor_32x32 aom_highbd_h_predictor_32x32_sse2
+    RTCD_EXTERN void(*aom_highbd_h_predictor_32x32)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_h_predictor_32x64_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_32x64_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1571,11 +1571,11 @@ extern "C" {
 
     void aom_highbd_h_predictor_4x4_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_4x4_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_h_predictor_4x4 aom_highbd_h_predictor_4x4_sse2
+    RTCD_EXTERN void(*aom_highbd_h_predictor_4x4)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_h_predictor_4x8_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_4x8_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_h_predictor_4x8 aom_highbd_h_predictor_4x8_sse2
+    RTCD_EXTERN void(*aom_highbd_h_predictor_4x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_h_predictor_64x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_64x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1591,7 +1591,7 @@ extern "C" {
 
     void aom_highbd_h_predictor_8x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_8x16_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_h_predictor_8x16 aom_highbd_h_predictor_8x16_sse2
+    RTCD_EXTERN void(*aom_highbd_h_predictor_8x16)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_h_predictor_8x32_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_8x32_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1599,11 +1599,11 @@ extern "C" {
 
     void aom_highbd_h_predictor_8x4_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_8x4_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_h_predictor_8x4 aom_highbd_h_predictor_8x4_sse2
+    RTCD_EXTERN void(*aom_highbd_h_predictor_8x4)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_h_predictor_8x8_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_h_predictor_8x8_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_h_predictor_8x8 aom_highbd_h_predictor_8x8_sse2
+    RTCD_EXTERN void(*aom_highbd_h_predictor_8x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_smooth_h_predictor_16x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_smooth_h_predictor_16x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1626,7 +1626,7 @@ extern "C" {
     RTCD_EXTERN void(*aom_highbd_smooth_h_predictor_16x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_smooth_h_predictor_2x2_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_smooth_h_predictor_2x2 aom_highbd_smooth_h_predictor_2x2_c
+    RTCD_EXTERN void(*aom_highbd_smooth_h_predictor_2x2)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_smooth_h_predictor_32x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_smooth_h_predictor_32x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1705,7 +1705,7 @@ extern "C" {
     RTCD_EXTERN void(*aom_highbd_smooth_predictor_16x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_smooth_predictor_2x2_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_smooth_predictor_2x2 aom_highbd_smooth_predictor_2x2_c
+    RTCD_EXTERN void(*aom_highbd_smooth_predictor_2x2)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_smooth_predictor_32x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_smooth_predictor_32x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1785,7 +1785,7 @@ extern "C" {
     RTCD_EXTERN void(*aom_highbd_smooth_v_predictor_16x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_smooth_v_predictor_2x2_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_smooth_v_predictor_2x2 aom_highbd_smooth_v_predictor_2x2_c
+    RTCD_EXTERN void(*aom_highbd_smooth_v_predictor_2x2)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_smooth_v_predictor_32x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_smooth_v_predictor_32x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1843,25 +1843,14 @@ extern "C" {
     void aom_highbd_smooth_v_predictor_8x8_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     RTCD_EXTERN void(*aom_highbd_smooth_v_predictor_8x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
-    void aom_highbd_subtract_block_c(int32_t rows, int32_t cols, int16_t *diff_ptr, ptrdiff_t diff_stride, const uint8_t *src_ptr, ptrdiff_t src_stride, const uint8_t *pred_ptr, ptrdiff_t pred_stride, int32_t bd);
-    void aom_highbd_subtract_block_sse2(int32_t rows, int32_t cols, int16_t *diff_ptr, ptrdiff_t diff_stride, const uint8_t *src_ptr, ptrdiff_t src_stride, const uint8_t *pred_ptr, ptrdiff_t pred_stride, int32_t bd);
-#define aom_highbd_subtract_block aom_highbd_subtract_block_sse2
-
-    //void aom_highbd_upsampled_pred_c(MacroBlockD *xd, const struct AV1Common *const cm, int32_t mi_row, int32_t mi_col,
-    //    const MV *const mv, uint16_t *comp_pred, int32_t width, int32_t height, int32_t subpel_x_q3,
-    //    int32_t subpel_y_q3, const uint8_t *ref8, int32_t ref_stride, int32_t bd);
-    //void aom_highbd_upsampled_pred_sse2(MacroBlockD *xd, const struct AV1Common *const cm, int32_t mi_row, int32_t mi_col,
-    //    const MV *const mv, uint16_t *comp_pred, int32_t width, int32_t height, int32_t subpel_x_q3,
-    //    int32_t subpel_y_q3, const uint8_t *ref8, int32_t ref_stride, int32_t bd);
-    //#define aom_highbd_upsampled_pred aom_highbd_upsampled_pred_sse2
-
+ 
     void aom_highbd_v_predictor_16x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_16x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_v_predictor_16x16 aom_highbd_v_predictor_16x16_avx2
+    RTCD_EXTERN void(*aom_highbd_v_predictor_16x16)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_v_predictor_16x32_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_16x32_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_v_predictor_16x32 aom_highbd_v_predictor_16x32_avx2
+    RTCD_EXTERN void(*aom_highbd_v_predictor_16x32)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_v_predictor_16x4_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_16x4_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1874,18 +1863,18 @@ extern "C" {
 
     void aom_highbd_v_predictor_16x8_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_16x8_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_v_predictor_16x8 aom_highbd_v_predictor_16x8_avx2
+    RTCD_EXTERN void(*aom_highbd_v_predictor_16x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_v_predictor_2x2_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_v_predictor_2x2 aom_highbd_v_predictor_2x2_c
+    RTCD_EXTERN void(*aom_highbd_v_predictor_2x2)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_v_predictor_32x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_32x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_v_predictor_32x16 aom_highbd_v_predictor_32x16_avx2
+    RTCD_EXTERN void(*aom_highbd_v_predictor_32x16)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_v_predictor_32x32_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_32x32_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_v_predictor_32x32 aom_highbd_v_predictor_32x32_avx2
+    RTCD_EXTERN void(*aom_highbd_v_predictor_32x32)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_v_predictor_32x64_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_32x64_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1901,11 +1890,11 @@ extern "C" {
 
     void aom_highbd_v_predictor_4x4_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_4x4_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_v_predictor_4x4 aom_highbd_v_predictor_4x4_sse2
+    RTCD_EXTERN void(*aom_highbd_v_predictor_4x4)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_v_predictor_4x8_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_4x8_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_v_predictor_4x8 aom_highbd_v_predictor_4x8_sse2
+    RTCD_EXTERN void(*aom_highbd_v_predictor_4x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_v_predictor_64x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_64x16_avx2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1921,7 +1910,7 @@ extern "C" {
 
     void aom_highbd_v_predictor_8x16_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_8x16_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_v_predictor_8x16 aom_highbd_v_predictor_8x16_sse2
+    RTCD_EXTERN void(*aom_highbd_v_predictor_8x16)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_v_predictor_8x32_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_8x32_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
@@ -1929,51 +1918,51 @@ extern "C" {
 
     void aom_highbd_v_predictor_8x4_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_8x4_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_v_predictor_8x4 aom_highbd_v_predictor_8x4_sse2
+    RTCD_EXTERN void(*aom_highbd_v_predictor_8x4)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
     void aom_highbd_v_predictor_8x8_c(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
     void aom_highbd_v_predictor_8x8_sse2(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
-#define aom_highbd_v_predictor_8x8 aom_highbd_v_predictor_8x8_sse2
+    RTCD_EXTERN void(*aom_highbd_v_predictor_8x8)(uint16_t *dst, ptrdiff_t y_stride, const uint16_t *above, const uint16_t *left, int32_t bd);
 
-void av1_dr_prediction_z1_c(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_above, int32_t dx, int32_t dy);
-void av1_dr_prediction_z1_avx2(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_above, int32_t dx, int32_t dy);
-RTCD_EXTERN void(*av1_dr_prediction_z1)(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_above, int32_t dx, int32_t dy);
-
-void av1_dr_prediction_z2_c(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_above, int32_t upsample_left, int32_t dx, int32_t dy);
-void av1_dr_prediction_z2_avx2(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_above, int32_t upsample_left, int32_t dx, int32_t dy);
-RTCD_EXTERN void(*av1_dr_prediction_z2)(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_above, int32_t upsample_left, int32_t dx, int32_t dy);
-
-void av1_dr_prediction_z3_c(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_left, int32_t dx, int32_t dy);
-void av1_dr_prediction_z3_avx2(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_left, int32_t dx, int32_t dy);
-RTCD_EXTERN void(*av1_dr_prediction_z3)(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_left, int32_t dx, int32_t dy);
-
-void av1_highbd_dr_prediction_z1_c(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_above, int32_t dx, int32_t dy, int32_t bd);
-void av1_highbd_dr_prediction_z1_avx2(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_above, int32_t dx, int32_t dy, int32_t bd);
-RTCD_EXTERN void(*av1_highbd_dr_prediction_z1)(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_above, int32_t dx, int32_t dy, int32_t bd);
-
-void av1_highbd_dr_prediction_z2_c(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_above, int32_t upsample_left, int32_t dx, int32_t dy, int32_t bd);
-void av1_highbd_dr_prediction_z2_avx2(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_above, int32_t upsample_left, int32_t dx, int32_t dy, int32_t bd);
-RTCD_EXTERN void(*av1_highbd_dr_prediction_z2)(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_above, int32_t upsample_left, int32_t dx, int32_t dy, int32_t bd);
-
-void av1_highbd_dr_prediction_z3_c(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_left, int32_t dx, int32_t dy, int32_t bd);
-void av1_highbd_dr_prediction_z3_avx2(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_left, int32_t dx, int32_t dy, int32_t bd);
-RTCD_EXTERN void(*av1_highbd_dr_prediction_z3)(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_left, int32_t dx, int32_t dy, int32_t bd);
-
-void av1_get_nz_map_contexts_c(const uint8_t *const levels, const int16_t *const scan, const uint16_t eob, const TxSize tx_size, const TX_CLASS tx_class, int8_t *const coeff_contexts);
-void av1_get_nz_map_contexts_sse2(const uint8_t *const levels, const int16_t *const scan, const uint16_t eob, const TxSize tx_size, const TX_CLASS tx_class, int8_t *const coeff_contexts);
-#define av1_get_nz_map_contexts av1_get_nz_map_contexts_sse2
-
-void highbd_variance64_c(const uint8_t *a8, int32_t a_stride, const uint8_t *b8, int32_t b_stride, int32_t w, int32_t h, uint64_t *sse, int64_t *sum);
-void highbd_variance64_avx2(const uint8_t *a8, int32_t a_stride, const uint8_t *b8, int32_t b_stride, int32_t w, int32_t h, uint64_t *sse, int64_t *sum);
-RTCD_EXTERN void (*highbd_variance64)(const uint8_t *a8, int32_t a_stride, const uint8_t *b8, int32_t b_stride, int32_t w, int32_t h, uint64_t *sse, int64_t *sum);
-
-void ResidualKernel_c(uint8_t *input, uint32_t inputStride, uint8_t *pred, uint32_t predStride, int16_t *residual, uint32_t residualStride, uint32_t areaWidth, uint32_t areaHeight);
-void ResidualKernel_avx2(uint8_t *input, uint32_t inputStride, uint8_t *pred, uint32_t predStride, int16_t *residual, uint32_t residualStride, uint32_t areaWidth, uint32_t areaHeight);
-RTCD_EXTERN void(*ResidualKernel)(uint8_t *input, uint32_t inputStride, uint8_t *pred, uint32_t predStride, int16_t *residual, uint32_t residualStride, uint32_t areaWidth, uint32_t areaHeight);
-
-void av1_txb_init_levels_c(const tran_low_t *const coeff, const int32_t width, const int32_t height, uint8_t *const levels);
-void av1_txb_init_levels_avx2(const tran_low_t *const coeff, const int32_t width, const int32_t height, uint8_t *const levels);
-RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int32_t width, const int32_t height, uint8_t *const levels);
+    void av1_dr_prediction_z1_c(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_above, int32_t dx, int32_t dy);
+    void av1_dr_prediction_z1_avx2(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_above, int32_t dx, int32_t dy);
+    RTCD_EXTERN void(*av1_dr_prediction_z1)(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_above, int32_t dx, int32_t dy);
+    
+    void av1_dr_prediction_z2_c(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_above, int32_t upsample_left, int32_t dx, int32_t dy);
+    void av1_dr_prediction_z2_avx2(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_above, int32_t upsample_left, int32_t dx, int32_t dy);
+    RTCD_EXTERN void(*av1_dr_prediction_z2)(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_above, int32_t upsample_left, int32_t dx, int32_t dy);
+    
+    void av1_dr_prediction_z3_c(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_left, int32_t dx, int32_t dy);
+    void av1_dr_prediction_z3_avx2(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_left, int32_t dx, int32_t dy);
+    RTCD_EXTERN void(*av1_dr_prediction_z3)(uint8_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint8_t *above, const uint8_t *left, int32_t upsample_left, int32_t dx, int32_t dy);
+    
+    void av1_highbd_dr_prediction_z1_c(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_above, int32_t dx, int32_t dy, int32_t bd);
+    void av1_highbd_dr_prediction_z1_avx2(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_above, int32_t dx, int32_t dy, int32_t bd);
+    RTCD_EXTERN void(*av1_highbd_dr_prediction_z1)(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_above, int32_t dx, int32_t dy, int32_t bd);
+    
+    void av1_highbd_dr_prediction_z2_c(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_above, int32_t upsample_left, int32_t dx, int32_t dy, int32_t bd);
+    void av1_highbd_dr_prediction_z2_avx2(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_above, int32_t upsample_left, int32_t dx, int32_t dy, int32_t bd);
+    RTCD_EXTERN void(*av1_highbd_dr_prediction_z2)(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_above, int32_t upsample_left, int32_t dx, int32_t dy, int32_t bd);
+    
+    void av1_highbd_dr_prediction_z3_c(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_left, int32_t dx, int32_t dy, int32_t bd);
+    void av1_highbd_dr_prediction_z3_avx2(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_left, int32_t dx, int32_t dy, int32_t bd);
+    RTCD_EXTERN void(*av1_highbd_dr_prediction_z3)(uint16_t *dst, ptrdiff_t stride, int32_t bw, int32_t bh, const uint16_t *above, const uint16_t *left, int32_t upsample_left, int32_t dx, int32_t dy, int32_t bd);
+    
+    //void av1_get_nz_map_contexts_c(const uint8_t *const levels, const int16_t *const scan, const uint16_t eob, const TxSize tx_size, const TX_CLASS tx_class, int8_t *const coeff_contexts);
+    void av1_get_nz_map_contexts_sse2(const uint8_t *const levels, const int16_t *const scan, const uint16_t eob, const TxSize tx_size, const TX_CLASS tx_class, int8_t *const coeff_contexts);
+    RTCD_EXTERN void(*av1_get_nz_map_contexts)(const uint8_t *const levels, const int16_t *const scan, const uint16_t eob, const TxSize tx_size, const TX_CLASS tx_class, int8_t *const coeff_contexts);
+    
+    void highbd_variance64_c(const uint8_t *a8, int32_t a_stride, const uint8_t *b8, int32_t b_stride, int32_t w, int32_t h, uint64_t *sse, int64_t *sum);
+    void highbd_variance64_avx2(const uint8_t *a8, int32_t a_stride, const uint8_t *b8, int32_t b_stride, int32_t w, int32_t h, uint64_t *sse, int64_t *sum);
+    RTCD_EXTERN void (*highbd_variance64)(const uint8_t *a8, int32_t a_stride, const uint8_t *b8, int32_t b_stride, int32_t w, int32_t h, uint64_t *sse, int64_t *sum);
+    
+    void ResidualKernel_c(uint8_t *input, uint32_t inputStride, uint8_t *pred, uint32_t predStride, int16_t *residual, uint32_t residualStride, uint32_t areaWidth, uint32_t areaHeight);
+    void ResidualKernel_avx2(uint8_t *input, uint32_t inputStride, uint8_t *pred, uint32_t predStride, int16_t *residual, uint32_t residualStride, uint32_t areaWidth, uint32_t areaHeight);
+    RTCD_EXTERN void(*ResidualKernel)(uint8_t *input, uint32_t inputStride, uint8_t *pred, uint32_t predStride, int16_t *residual, uint32_t residualStride, uint32_t areaWidth, uint32_t areaHeight);
+    
+    void av1_txb_init_levels_c(const tran_low_t *const coeff, const int32_t width, const int32_t height, uint8_t *const levels);
+    void av1_txb_init_levels_avx2(const tran_low_t *const coeff, const int32_t width, const int32_t height, uint8_t *const levels);
+    RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int32_t width, const int32_t height, uint8_t *const levels);
 
 #endif
 
@@ -2098,13 +2087,13 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         if (flags & HAS_AVX2) av1_jnt_convolve_2d = av1_jnt_convolve_2d_avx2;
 
         aom_quantize_b = aom_quantize_b_c_II;
-        if (flags & HAS_AVX) aom_quantize_b = aom_highbd_quantize_b_avx2;
+        if (flags & HAS_AVX2) aom_quantize_b = aom_highbd_quantize_b_avx2;
 
         aom_quantize_b_32x32 = aom_quantize_b_32x32_c_II;
-        if (flags & HAS_AVX) aom_quantize_b_32x32 = aom_highbd_quantize_b_32x32_avx2;
+        if (flags & HAS_AVX2) aom_quantize_b_32x32 = aom_highbd_quantize_b_32x32_avx2;
 
         aom_highbd_quantize_b_32x32 = aom_highbd_quantize_b_32x32_c;
-        if (flags & HAS_AVX) aom_highbd_quantize_b_32x32 = aom_highbd_quantize_b_32x32_avx2;
+        if (flags & HAS_AVX2) aom_highbd_quantize_b_32x32 = aom_highbd_quantize_b_32x32_avx2;
 
         aom_highbd_quantize_b = aom_highbd_quantize_b_c;
         if (flags & HAS_AVX2) aom_highbd_quantize_b = aom_highbd_quantize_b_avx2;
@@ -2149,8 +2138,8 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         av1_inv_txfm2d_add_16x4 = av1_inv_txfm2d_add_16x4_c;
         if (flags & HAS_SSE4_1) av1_inv_txfm2d_add_16x4 = av1_inv_txfm2d_add_16x4_sse4_1;
 
-        //toDO add C
-        if (flags & HAS_AVX2) av1_inv_txfm_add = av1_inv_txfm_add_ssse3;
+        av1_inv_txfm_add = av1_inv_txfm_add_c;
+        if (flags & HAS_SSSE3) av1_inv_txfm_add = av1_inv_txfm_add_ssse3;
 
         highbd_variance64 = highbd_variance64_c;
         if (flags & HAS_AVX2) highbd_variance64 = highbd_variance64_avx2;
@@ -2165,232 +2154,65 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
     
 #if INTRINSIC_OPT_2
 
-        aom_highbd_dc_128_predictor_16x16 = aom_highbd_dc_128_predictor_16x16_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_16x16 = aom_highbd_dc_128_predictor_16x16_avx2;
-
-        aom_highbd_dc_128_predictor_16x32 = aom_highbd_dc_128_predictor_16x32_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_16x32 = aom_highbd_dc_128_predictor_16x32_avx2;
-
-        aom_highbd_dc_128_predictor_16x4 = aom_highbd_dc_128_predictor_16x4_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_16x4 = aom_highbd_dc_128_predictor_16x4_avx2;
-
-        aom_highbd_dc_128_predictor_16x64 = aom_highbd_dc_128_predictor_16x64_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_16x64 = aom_highbd_dc_128_predictor_16x64_avx2;
-
-        aom_highbd_dc_128_predictor_16x8 = aom_highbd_dc_128_predictor_16x8_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_16x8 = aom_highbd_dc_128_predictor_16x8_avx2;
-
-        aom_highbd_dc_128_predictor_2x2 = aom_highbd_dc_128_predictor_2x2_c;
-
-        aom_highbd_dc_128_predictor_32x16 = aom_highbd_dc_128_predictor_32x16_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_32x16 = aom_highbd_dc_128_predictor_32x16_avx2;
-
-        aom_highbd_dc_128_predictor_32x32 = aom_highbd_dc_128_predictor_32x32_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_32x32 = aom_highbd_dc_128_predictor_32x32_avx2;
-
-        aom_highbd_dc_128_predictor_32x64 = aom_highbd_dc_128_predictor_32x64_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_32x64 = aom_highbd_dc_128_predictor_32x64_avx2;
-
-        aom_highbd_dc_128_predictor_32x8 = aom_highbd_dc_128_predictor_32x8_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_32x8 = aom_highbd_dc_128_predictor_32x8_avx2;
-
-        aom_highbd_dc_128_predictor_4x16 = aom_highbd_dc_128_predictor_4x16_c;
-        if (flags & HAS_SSE2) aom_highbd_dc_128_predictor_4x16 = aom_highbd_dc_128_predictor_4x16_sse2;
-        aom_highbd_dc_128_predictor_4x4 = aom_highbd_dc_128_predictor_4x4_c;
-        if (flags & HAS_SSE2) aom_highbd_dc_128_predictor_4x4 = aom_highbd_dc_128_predictor_4x4_sse2;
-        aom_highbd_dc_128_predictor_4x8 = aom_highbd_dc_128_predictor_4x8_c;
-        if (flags & HAS_SSE2) aom_highbd_dc_128_predictor_4x8 = aom_highbd_dc_128_predictor_4x8_sse2;
-        aom_highbd_dc_128_predictor_8x32 = aom_highbd_dc_128_predictor_8x32_c;
-        if (flags & HAS_SSE2) aom_highbd_dc_128_predictor_8x32 = aom_highbd_dc_128_predictor_8x32_sse2;
-
-
-        aom_highbd_dc_left_predictor_16x16 = aom_highbd_dc_left_predictor_16x16_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_16x16 = aom_highbd_dc_left_predictor_16x16_avx2;
-
-        aom_highbd_dc_left_predictor_16x32 = aom_highbd_dc_left_predictor_16x32_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_16x32 = aom_highbd_dc_left_predictor_16x32_avx2;
-
-        aom_highbd_dc_left_predictor_16x4 = aom_highbd_dc_left_predictor_16x4_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_16x4 = aom_highbd_dc_left_predictor_16x4_avx2;
-
-        aom_highbd_dc_left_predictor_16x64 = aom_highbd_dc_left_predictor_16x64_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_16x64 = aom_highbd_dc_left_predictor_16x64_avx2;
-
-        aom_highbd_dc_left_predictor_16x8 = aom_highbd_dc_left_predictor_16x8_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_16x8 = aom_highbd_dc_left_predictor_16x8_avx2;
-
-        aom_highbd_dc_left_predictor_32x16 = aom_highbd_dc_left_predictor_32x16_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_32x16 = aom_highbd_dc_left_predictor_32x16_avx2;
-
-        aom_highbd_dc_left_predictor_32x32 = aom_highbd_dc_left_predictor_32x32_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_32x32 = aom_highbd_dc_left_predictor_32x32_avx2;
-
-        aom_highbd_dc_left_predictor_32x64 = aom_highbd_dc_left_predictor_32x64_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_32x64 = aom_highbd_dc_left_predictor_32x64_avx2;
-
-        aom_highbd_dc_left_predictor_32x8 = aom_highbd_dc_left_predictor_32x8_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_32x8 = aom_highbd_dc_left_predictor_32x8_avx2;
-
-        aom_highbd_dc_left_predictor_4x16 = aom_highbd_dc_left_predictor_4x16_c;
-        if (flags & HAS_SSE2) aom_highbd_dc_left_predictor_4x16 = aom_highbd_dc_left_predictor_4x16_sse2;
-
-        aom_highbd_dc_left_predictor_8x32 = aom_highbd_dc_left_predictor_8x32_c;
-        if (flags & HAS_SSE2) aom_highbd_dc_left_predictor_8x32 = aom_highbd_dc_left_predictor_8x32_sse2;
-
-        aom_highbd_dc_predictor_16x16 = aom_highbd_dc_predictor_16x16_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_predictor_16x16 = aom_highbd_dc_predictor_16x16_avx2;
-
-        aom_highbd_dc_predictor_16x32 = aom_highbd_dc_predictor_16x32_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_predictor_16x32 = aom_highbd_dc_predictor_16x32_avx2;
-
-        aom_highbd_dc_predictor_16x4 = aom_highbd_dc_predictor_16x4_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_predictor_16x4 = aom_highbd_dc_predictor_16x4_avx2;
-
-        aom_highbd_dc_predictor_16x64 = aom_highbd_dc_predictor_16x64_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_predictor_16x64 = aom_highbd_dc_predictor_16x64_avx2;
-
-        aom_highbd_dc_predictor_16x8 = aom_highbd_dc_predictor_16x8_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_predictor_16x8 = aom_highbd_dc_predictor_16x8_avx2;
-
-        aom_highbd_dc_predictor_32x16 = aom_highbd_dc_predictor_32x16_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_predictor_32x16 = aom_highbd_dc_predictor_32x16_avx2;
-
-        aom_highbd_dc_predictor_32x32 = aom_highbd_dc_predictor_32x32_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_predictor_32x32 = aom_highbd_dc_predictor_32x32_avx2;
-
-        aom_highbd_dc_predictor_32x64 = aom_highbd_dc_predictor_32x64_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_predictor_32x64 = aom_highbd_dc_predictor_32x64_avx2;
-
-        aom_highbd_dc_predictor_32x8 = aom_highbd_dc_predictor_32x8_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_predictor_32x8 = aom_highbd_dc_predictor_32x8_avx2;
-
-        aom_highbd_dc_predictor_4x16 = aom_highbd_dc_predictor_4x16_c;
-        if (flags & HAS_SSE2) aom_highbd_dc_predictor_4x16 = aom_highbd_dc_predictor_4x16_sse2;
-
-        aom_highbd_dc_predictor_64x16 = aom_highbd_dc_predictor_64x16_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_predictor_64x16 = aom_highbd_dc_predictor_64x16_avx2;
-
-        aom_highbd_dc_predictor_64x32 = aom_highbd_dc_predictor_64x32_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_predictor_64x32 = aom_highbd_dc_predictor_64x32_avx2;
-
-        aom_highbd_dc_predictor_64x64 = aom_highbd_dc_predictor_64x64_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_predictor_64x64 = aom_highbd_dc_predictor_64x64_avx2;
-
-        aom_highbd_dc_predictor_8x32 = aom_highbd_dc_predictor_8x32_c;
-        if (flags & HAS_SSE2) aom_highbd_dc_predictor_8x32 = aom_highbd_dc_predictor_8x32_sse2;
-
-
-        aom_highbd_dc_top_predictor_16x16 = aom_highbd_dc_top_predictor_16x16_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_16x16 = aom_highbd_dc_top_predictor_16x16_avx2;
-
-        aom_highbd_dc_top_predictor_16x32 = aom_highbd_dc_top_predictor_16x32_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_16x32 = aom_highbd_dc_top_predictor_16x32_avx2;
-
-        aom_highbd_dc_top_predictor_16x4 = aom_highbd_dc_top_predictor_16x4_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_16x4 = aom_highbd_dc_top_predictor_16x4_avx2;
-
-        aom_highbd_dc_top_predictor_16x64 = aom_highbd_dc_top_predictor_16x64_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_16x64 = aom_highbd_dc_top_predictor_16x64_avx2;
-
-        aom_highbd_dc_top_predictor_16x8 = aom_highbd_dc_top_predictor_16x8_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_16x8 = aom_highbd_dc_top_predictor_16x8_avx2;
-
-        aom_highbd_dc_top_predictor_32x16 = aom_highbd_dc_top_predictor_32x16_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_32x16 = aom_highbd_dc_top_predictor_32x16_avx2;
-
-        aom_highbd_dc_top_predictor_32x32 = aom_highbd_dc_top_predictor_32x32_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_32x32 = aom_highbd_dc_top_predictor_32x32_avx2;
-
-        aom_highbd_dc_top_predictor_32x64 = aom_highbd_dc_top_predictor_32x64_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_32x64 = aom_highbd_dc_top_predictor_32x64_avx2;
-
-        aom_highbd_dc_top_predictor_32x8 = aom_highbd_dc_top_predictor_32x8_c;
-        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_32x8 = aom_highbd_dc_top_predictor_32x8_avx2;
-
-        aom_highbd_dc_top_predictor_4x16 = aom_highbd_dc_top_predictor_4x16_c;
-        if (flags & HAS_SSE2) aom_highbd_dc_top_predictor_4x16 = aom_highbd_dc_top_predictor_4x16_sse2;
-
-
         aom_highbd_smooth_v_predictor_16x16 = aom_highbd_smooth_v_predictor_16x16_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_16x16 = aom_highbd_smooth_v_predictor_16x16_avx2;
-
         aom_highbd_smooth_v_predictor_16x32 = aom_highbd_smooth_v_predictor_16x32_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_16x32 = aom_highbd_smooth_v_predictor_16x32_avx2;
-
         aom_highbd_smooth_v_predictor_16x4 = aom_highbd_smooth_v_predictor_16x4_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_16x4 = aom_highbd_smooth_v_predictor_16x4_avx2;
-
         aom_highbd_smooth_v_predictor_16x64 = aom_highbd_smooth_v_predictor_16x64_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_16x64 = aom_highbd_smooth_v_predictor_16x64_avx2;
-
         aom_highbd_smooth_v_predictor_16x8 = aom_highbd_smooth_v_predictor_16x8_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_16x8 = aom_highbd_smooth_v_predictor_16x8_avx2;
-
+        aom_highbd_smooth_v_predictor_2x2 = aom_highbd_smooth_v_predictor_2x2_c;
         aom_highbd_smooth_v_predictor_32x16 = aom_highbd_smooth_v_predictor_32x16_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_32x16 = aom_highbd_smooth_v_predictor_32x16_avx2;
-
         aom_highbd_smooth_v_predictor_32x32 = aom_highbd_smooth_v_predictor_32x32_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_32x32 = aom_highbd_smooth_v_predictor_32x32_avx2;
-
         aom_highbd_smooth_v_predictor_32x64 = aom_highbd_smooth_v_predictor_32x64_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_32x64 = aom_highbd_smooth_v_predictor_32x64_avx2;
-
         aom_highbd_smooth_v_predictor_32x8 = aom_highbd_smooth_v_predictor_32x8_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_32x8 = aom_highbd_smooth_v_predictor_32x8_avx2;
-
         aom_highbd_smooth_v_predictor_4x16 = aom_highbd_smooth_v_predictor_4x16_c;
         if (flags & HAS_SSSE3) aom_highbd_smooth_v_predictor_4x16 = aom_highbd_smooth_v_predictor_4x16_ssse3;
-
         aom_highbd_smooth_v_predictor_4x4 = aom_highbd_smooth_v_predictor_4x4_c;
         if (flags & HAS_SSSE3) aom_highbd_smooth_v_predictor_4x4 = aom_highbd_smooth_v_predictor_4x4_ssse3;
-
         aom_highbd_smooth_v_predictor_4x8 = aom_highbd_smooth_v_predictor_4x8_c;
         if (flags & HAS_SSSE3) aom_highbd_smooth_v_predictor_4x8 = aom_highbd_smooth_v_predictor_4x8_ssse3;
-
         aom_highbd_smooth_v_predictor_64x16 = aom_highbd_smooth_v_predictor_64x16_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_64x16 = aom_highbd_smooth_v_predictor_64x16_avx2;
-
         aom_highbd_smooth_v_predictor_64x32 = aom_highbd_smooth_v_predictor_64x32_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_64x32 = aom_highbd_smooth_v_predictor_64x32_avx2;
-
         aom_highbd_smooth_v_predictor_64x64 = aom_highbd_smooth_v_predictor_64x64_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_64x64 = aom_highbd_smooth_v_predictor_64x64_avx2;
-
         aom_highbd_smooth_v_predictor_8x16 = aom_highbd_smooth_v_predictor_8x16_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_8x16 = aom_highbd_smooth_v_predictor_8x16_avx2;
-
         aom_highbd_smooth_v_predictor_8x32 = aom_highbd_smooth_v_predictor_8x32_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_8x32 = aom_highbd_smooth_v_predictor_8x32_avx2;
-
         aom_highbd_smooth_v_predictor_8x4 = aom_highbd_smooth_v_predictor_8x4_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_8x4 = aom_highbd_smooth_v_predictor_8x4_avx2;
-
         aom_highbd_smooth_v_predictor_8x8 = aom_highbd_smooth_v_predictor_8x8_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_v_predictor_8x8 = aom_highbd_smooth_v_predictor_8x8_avx2;
 
         cfl_predict_lbd = cfl_predict_lbd_c;
         if (flags & HAS_AVX2) cfl_predict_lbd = cfl_predict_lbd_avx2;
-
         cfl_predict_hbd = cfl_predict_hbd_c;
         if (flags & HAS_AVX2) cfl_predict_hbd = cfl_predict_hbd_avx2;
 
         av1_dr_prediction_z1 = av1_dr_prediction_z1_c;
         if (flags & HAS_AVX2) av1_dr_prediction_z1 = av1_dr_prediction_z1_avx2;
-
         av1_dr_prediction_z2 = av1_dr_prediction_z2_c;
         if (flags & HAS_AVX2) av1_dr_prediction_z2 = av1_dr_prediction_z2_avx2;
-
         av1_dr_prediction_z3 = av1_dr_prediction_z3_c;
         if (flags & HAS_AVX2) av1_dr_prediction_z3 = av1_dr_prediction_z3_avx2;
-
         av1_highbd_dr_prediction_z1 = av1_highbd_dr_prediction_z1_c;
         if (flags & HAS_AVX2) av1_highbd_dr_prediction_z1 = av1_highbd_dr_prediction_z1_avx2;
-
         av1_highbd_dr_prediction_z2 = av1_highbd_dr_prediction_z2_c;
         if (flags & HAS_AVX2) av1_highbd_dr_prediction_z2 = av1_highbd_dr_prediction_z2_avx2;
-
         av1_highbd_dr_prediction_z3 = av1_highbd_dr_prediction_z3_c;
         if (flags & HAS_AVX2) av1_highbd_dr_prediction_z3 = av1_highbd_dr_prediction_z3_avx2;
+        //av1_get_nz_map_contexts = av1_get_nz_map_contexts_c;
+        if (flags & HAS_SSE2) av1_get_nz_map_contexts = av1_get_nz_map_contexts_sse2;
 
         ResidualKernel = ResidualKernel_c;
         if (flags & HAS_AVX2) ResidualKernel = ResidualKernel_avx2;
@@ -2672,6 +2494,17 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         if (flags & HAS_SSSE3) aom_smooth_h_predictor_8x32 = aom_smooth_h_predictor_8x32_ssse3;
         aom_smooth_h_predictor_8x4 = aom_smooth_h_predictor_8x4_c;
         if (flags & HAS_SSSE3) aom_smooth_h_predictor_8x4 = aom_smooth_h_predictor_8x4_ssse3;
+        aom_smooth_h_predictor_64x64 = aom_smooth_h_predictor_64x64_c;
+        if (flags & HAS_SSSE3) aom_smooth_h_predictor_64x64 = aom_smooth_h_predictor_64x64_ssse3;
+        aom_smooth_h_predictor_32x32 = aom_smooth_h_predictor_32x32_c;
+        if (flags & HAS_SSSE3) aom_smooth_h_predictor_32x32 = aom_smooth_h_predictor_32x32_ssse3;
+        aom_smooth_h_predictor_16x16 = aom_smooth_h_predictor_16x16_c;
+        if (flags & HAS_SSSE3) aom_smooth_h_predictor_16x16 = aom_smooth_h_predictor_16x16_ssse3;
+        aom_smooth_h_predictor_8x8 = aom_smooth_h_predictor_8x8_c;
+        if (flags & HAS_SSSE3) aom_smooth_h_predictor_8x8 = aom_smooth_h_predictor_8x8_ssse3;
+        aom_smooth_h_predictor_4x4 = aom_smooth_h_predictor_4x4_c;
+        if (flags & HAS_SSSE3) aom_smooth_h_predictor_4x4 = aom_smooth_h_predictor_4x4_ssse3;
+
 
         if (flags & HAS_SSSE3) aom_smooth_v_predictor_16x32 = aom_smooth_v_predictor_16x32_ssse3;
         aom_smooth_v_predictor_16x4 = aom_smooth_v_predictor_16x4_c;
@@ -2700,6 +2533,16 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         if (flags & HAS_SSSE3) aom_smooth_v_predictor_8x32 = aom_smooth_v_predictor_8x32_ssse3;
         aom_smooth_v_predictor_8x4 = aom_smooth_v_predictor_8x4_c;
         if (flags & HAS_SSSE3) aom_smooth_v_predictor_8x4 = aom_smooth_v_predictor_8x4_ssse3;
+        aom_smooth_v_predictor_64x64 = aom_smooth_v_predictor_64x64_c;
+        if (flags & HAS_SSSE3) aom_smooth_v_predictor_64x64 = aom_smooth_v_predictor_64x64_ssse3;
+        aom_smooth_v_predictor_32x32 = aom_smooth_v_predictor_32x32_c;
+        if (flags & HAS_SSSE3) aom_smooth_v_predictor_32x32 = aom_smooth_v_predictor_32x32_ssse3;
+        aom_smooth_v_predictor_16x16 = aom_smooth_v_predictor_16x16_c;
+        if (flags & HAS_SSSE3) aom_smooth_v_predictor_16x16 = aom_smooth_v_predictor_16x16_ssse3;
+        aom_smooth_v_predictor_8x8 = aom_smooth_v_predictor_8x8_c;
+        if (flags & HAS_SSSE3) aom_smooth_v_predictor_8x8 = aom_smooth_v_predictor_8x8_ssse3;
+        aom_smooth_v_predictor_4x4 = aom_smooth_v_predictor_4x4_c;
+        if (flags & HAS_SSSE3) aom_smooth_v_predictor_4x4 = aom_smooth_v_predictor_4x4_ssse3;
 
         aom_smooth_predictor_16x32 = aom_smooth_predictor_16x32_c;
         if (flags & HAS_SSSE3) aom_smooth_predictor_16x32 = aom_smooth_predictor_16x32_ssse3;
@@ -2729,29 +2572,6 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         if (flags & HAS_SSSE3) aom_smooth_predictor_8x32 = aom_smooth_predictor_8x32_ssse3;
         aom_smooth_predictor_8x4 = aom_smooth_predictor_8x4_c;
         if (flags & HAS_SSSE3) aom_smooth_predictor_8x4 = aom_smooth_predictor_8x4_ssse3;
-
-        aom_smooth_h_predictor_64x64 = aom_smooth_h_predictor_64x64_c;
-        if (flags & HAS_SSSE3) aom_smooth_h_predictor_64x64 = aom_smooth_h_predictor_64x64_ssse3;
-        aom_smooth_h_predictor_32x32 = aom_smooth_h_predictor_32x32_c;
-        if (flags & HAS_SSSE3) aom_smooth_h_predictor_32x32 = aom_smooth_h_predictor_32x32_ssse3;
-        aom_smooth_h_predictor_16x16 = aom_smooth_h_predictor_16x16_c;
-        if (flags & HAS_SSSE3) aom_smooth_h_predictor_16x16 = aom_smooth_h_predictor_16x16_ssse3;
-        aom_smooth_h_predictor_8x8 = aom_smooth_h_predictor_8x8_c;
-        if (flags & HAS_SSSE3) aom_smooth_h_predictor_8x8 = aom_smooth_h_predictor_8x8_ssse3;
-        aom_smooth_h_predictor_4x4 = aom_smooth_h_predictor_4x4_c;
-        if (flags & HAS_SSSE3) aom_smooth_h_predictor_4x4 = aom_smooth_h_predictor_4x4_ssse3;
-
-        aom_smooth_v_predictor_64x64 = aom_smooth_v_predictor_64x64_c;
-        if (flags & HAS_SSSE3) aom_smooth_v_predictor_64x64 = aom_smooth_v_predictor_64x64_ssse3;
-        aom_smooth_v_predictor_32x32 = aom_smooth_v_predictor_32x32_c;
-        if (flags & HAS_SSSE3) aom_smooth_v_predictor_32x32 = aom_smooth_v_predictor_32x32_ssse3;
-        aom_smooth_v_predictor_16x16 = aom_smooth_v_predictor_16x16_c;
-        if (flags & HAS_SSSE3) aom_smooth_v_predictor_16x16 = aom_smooth_v_predictor_16x16_ssse3;
-        aom_smooth_v_predictor_8x8 = aom_smooth_v_predictor_8x8_c;
-        if (flags & HAS_SSSE3) aom_smooth_v_predictor_8x8 = aom_smooth_v_predictor_8x8_ssse3;
-        aom_smooth_v_predictor_4x4 = aom_smooth_v_predictor_4x4_c;
-        if (flags & HAS_SSSE3) aom_smooth_v_predictor_4x4 = aom_smooth_v_predictor_4x4_ssse3;
-
         aom_smooth_predictor_64x64 = aom_smooth_predictor_64x64_c;
         if (flags & HAS_SSSE3) aom_smooth_predictor_64x64 = aom_smooth_predictor_64x64_ssse3;
         aom_smooth_predictor_32x32 = aom_smooth_predictor_32x32_c;
@@ -2762,6 +2582,45 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         if (flags & HAS_SSSE3) aom_smooth_predictor_8x8 = aom_smooth_predictor_8x8_ssse3;
         aom_smooth_predictor_4x4 = aom_smooth_predictor_4x4_c;
         if (flags & HAS_SSSE3) aom_smooth_predictor_4x4 = aom_smooth_predictor_4x4_ssse3;
+
+        aom_v_predictor_4x4 = aom_v_predictor_4x4_c;
+        if (flags & HAS_SSE2) aom_v_predictor_4x4 = aom_v_predictor_4x4_sse2;
+        aom_v_predictor_8x8 = aom_v_predictor_8x8_c;
+        if (flags & HAS_SSE2) aom_v_predictor_8x8 = aom_v_predictor_8x8_sse2;
+        aom_v_predictor_16x16 = aom_v_predictor_16x16_c;
+        if (flags & HAS_SSE2) aom_v_predictor_16x16 = aom_v_predictor_16x16_sse2;
+        aom_v_predictor_32x32 = aom_v_predictor_32x32_c;
+        if (flags & HAS_AVX2) aom_v_predictor_32x32 = aom_v_predictor_32x32_avx2;
+        aom_v_predictor_64x64 = aom_v_predictor_64x64_c;
+        if (flags & HAS_AVX2) aom_v_predictor_64x64 = aom_v_predictor_64x64_avx2;
+        aom_v_predictor_16x32 = aom_v_predictor_16x32_c;
+        if (flags & HAS_SSE2) aom_v_predictor_16x32 = aom_v_predictor_16x32_sse2;
+        aom_v_predictor_16x4 = aom_v_predictor_16x4_c;
+        if (flags & HAS_SSE2) aom_v_predictor_16x4 = aom_v_predictor_16x4_sse2;
+        aom_v_predictor_16x64 = aom_v_predictor_16x64_c;
+        if (flags & HAS_SSE2) aom_v_predictor_16x64 = aom_v_predictor_16x64_sse2;
+        aom_v_predictor_16x8 = aom_v_predictor_16x8_c;
+        if (flags & HAS_SSE2) aom_v_predictor_16x8 = aom_v_predictor_16x8_sse2;
+        aom_v_predictor_32x16 = aom_v_predictor_32x16_c;
+        if (flags & HAS_AVX2) aom_v_predictor_32x16 = aom_v_predictor_32x16_avx2;
+        aom_v_predictor_32x64 = aom_v_predictor_32x64_c;
+        if (flags & HAS_AVX2) aom_v_predictor_32x64 = aom_v_predictor_32x64_avx2;
+        aom_v_predictor_32x8 = aom_v_predictor_32x8_c;
+        if (flags & HAS_SSE2) aom_v_predictor_32x8 = aom_v_predictor_32x8_sse2;
+        aom_v_predictor_4x16 = aom_v_predictor_4x16_c;
+        if (flags & HAS_SSE2) aom_v_predictor_4x16 = aom_v_predictor_4x16_sse2;
+        aom_v_predictor_4x8 = aom_v_predictor_4x8_c;
+        if (flags & HAS_SSE2) aom_v_predictor_4x8 = aom_v_predictor_4x8_sse2;
+        aom_v_predictor_64x16 = aom_v_predictor_64x16_c;
+        if (flags & HAS_AVX2) aom_v_predictor_64x16 = aom_v_predictor_64x16_avx2;
+        aom_v_predictor_64x32 = aom_v_predictor_64x32_c;
+        if (flags & HAS_AVX2) aom_v_predictor_64x32 = aom_v_predictor_64x32_avx2;
+        aom_v_predictor_8x16 = aom_v_predictor_8x16_c;
+        if (flags & HAS_SSE2) aom_v_predictor_8x16 = aom_v_predictor_8x16_sse2;
+        aom_v_predictor_8x32 = aom_v_predictor_8x32_c;
+        if (flags & HAS_SSE2) aom_v_predictor_8x32 = aom_v_predictor_8x32_sse2;
+        aom_v_predictor_8x4 = aom_v_predictor_8x4_c;
+        if (flags & HAS_SSE2) aom_v_predictor_8x4 = aom_v_predictor_8x4_sse2;
 
         aom_h_predictor_4x4 = aom_h_predictor_4x4_c;
         if (flags & HAS_SSE2) aom_h_predictor_4x4 = aom_h_predictor_4x4_sse2;
@@ -2802,44 +2661,7 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         aom_h_predictor_8x4 = aom_h_predictor_8x4_c;
         if (flags & HAS_SSE2) aom_h_predictor_8x4 = aom_h_predictor_8x4_sse2;
 
-        aom_v_predictor_4x4 = aom_v_predictor_4x4_c;
-        if (flags & HAS_SSE2) aom_v_predictor_4x4 = aom_v_predictor_4x4_sse2;
-        aom_v_predictor_8x8 = aom_v_predictor_8x8_c;
-        if (flags & HAS_SSE2) aom_v_predictor_8x8 = aom_v_predictor_8x8_sse2;
-        aom_v_predictor_16x16 = aom_v_predictor_16x16_c;
-        if (flags & HAS_SSE2) aom_v_predictor_16x16 = aom_v_predictor_16x16_sse2;
-        aom_v_predictor_32x32 = aom_v_predictor_32x32_c;
-        if (flags & HAS_AVX2) aom_v_predictor_32x32 = aom_v_predictor_32x32_avx2;        
-        aom_v_predictor_64x64 = aom_v_predictor_64x64_c;
-        if (flags & HAS_AVX2) aom_v_predictor_64x64 = aom_v_predictor_64x64_avx2;
-        aom_v_predictor_16x32 = aom_v_predictor_16x32_c;
-        if (flags & HAS_SSE2) aom_v_predictor_16x32 = aom_v_predictor_16x32_sse2;
-        aom_v_predictor_16x4 = aom_v_predictor_16x4_c;
-        if (flags & HAS_SSE2) aom_v_predictor_16x4 = aom_v_predictor_16x4_sse2;
-        aom_v_predictor_16x64 = aom_v_predictor_16x64_c;
-        if (flags & HAS_SSE2) aom_v_predictor_16x64 = aom_v_predictor_16x64_sse2;
-        aom_v_predictor_16x8 = aom_v_predictor_16x8_c;
-        if (flags & HAS_SSE2) aom_v_predictor_16x8 = aom_v_predictor_16x8_sse2;
-        aom_v_predictor_32x16 = aom_v_predictor_32x16_c;
-        if (flags & HAS_AVX2) aom_v_predictor_32x16 = aom_v_predictor_32x16_avx2;
-        aom_v_predictor_32x64 = aom_v_predictor_32x64_c;
-        if (flags & HAS_AVX2) aom_v_predictor_32x64 = aom_v_predictor_32x64_avx2;
-        aom_v_predictor_32x8 = aom_v_predictor_32x8_c;
-        if (flags & HAS_SSE2) aom_v_predictor_32x8 = aom_v_predictor_32x8_sse2;
-        aom_v_predictor_4x16 = aom_v_predictor_4x16_c;
-        if (flags & HAS_SSE2) aom_v_predictor_4x16 = aom_v_predictor_4x16_sse2;
-        aom_v_predictor_4x8 = aom_v_predictor_4x8_c;
-        if (flags & HAS_SSE2) aom_v_predictor_4x8 = aom_v_predictor_4x8_sse2;
-        aom_v_predictor_64x16 = aom_v_predictor_64x16_c;
-        if (flags & HAS_AVX2) aom_v_predictor_64x16 = aom_v_predictor_64x16_avx2;
-        aom_v_predictor_64x32 = aom_v_predictor_64x32_c;
-        if (flags & HAS_AVX2) aom_v_predictor_64x32 = aom_v_predictor_64x32_avx2;
-        aom_v_predictor_8x16 = aom_v_predictor_8x16_c;
-        if (flags & HAS_SSE2) aom_v_predictor_8x16 = aom_v_predictor_8x16_sse2;
-        aom_v_predictor_8x32 = aom_v_predictor_8x32_c;
-        if (flags & HAS_SSE2) aom_v_predictor_8x32 = aom_v_predictor_8x32_sse2;
-        aom_v_predictor_8x4 = aom_v_predictor_8x4_c;
-        if (flags & HAS_SSE2) aom_v_predictor_8x4 = aom_v_predictor_8x4_sse2;
+ 
         //QIQ
 #if INTRINSIC_OPT_2
         aom_quantize_b_64x64 = aom_quantize_b_64x64_c_II;
@@ -2860,14 +2682,14 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         if (flags & HAS_AVX2) av1_fwd_txfm2d_8x16 = av1_fwd_txfm2d_8x16_avx2;
 
         av1_fwd_txfm2d_16x4 = av1_fwd_txfm2d_16x4_c;
-        if (flags & HAS_SSE4_1) av1_fwd_txfm2d_16x4 = av1_fwd_txfm2d_16x4_sse4_1;
+        if (flags & HAS_AVX2) av1_fwd_txfm2d_16x4 = av1_fwd_txfm2d_16x4_avx2;
         av1_fwd_txfm2d_4x16 = av1_fwd_txfm2d_4x16_c;
-        if (flags & HAS_SSE4_1) av1_fwd_txfm2d_4x16 = av1_fwd_txfm2d_4x16_sse4_1;
+        if (flags & HAS_AVX2) av1_fwd_txfm2d_4x16 = av1_fwd_txfm2d_4x16_avx2;
 
         av1_fwd_txfm2d_8x4 = av1_fwd_txfm2d_8x4_c;
-        if (flags & HAS_SSE4_1) av1_fwd_txfm2d_8x4 = av1_fwd_txfm2d_8x4_sse4_1;
+        if (flags & HAS_AVX2) av1_fwd_txfm2d_8x4 = av1_fwd_txfm2d_8x4_avx2;
         av1_fwd_txfm2d_4x8 = av1_fwd_txfm2d_4x8_c;
-        if (flags & HAS_SSE4_1) av1_fwd_txfm2d_4x8 = av1_fwd_txfm2d_4x8_sse4_1;
+        if (flags & HAS_AVX2) av1_fwd_txfm2d_4x8 = av1_fwd_txfm2d_4x8_avx2;
 #else
         av1_fwd_txfm2d_16x8 = av1_fwd_txfm2d_16x8_c;
         av1_fwd_txfm2d_8x16 = av1_fwd_txfm2d_8x16_c;
@@ -2906,37 +2728,33 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         av1_fwd_txfm2d_4x4 = Av1TransformTwoD_4x4_c;
         if (flags & HAS_SSE4_1) av1_fwd_txfm2d_4x4 = av1_fwd_txfm2d_4x4_sse4_1;
 
-        // aom_highbd_h_predictor
-        aom_highbd_h_predictor_16x4 = aom_highbd_h_predictor_16x4_c;
-        if (flags & HAS_AVX2) aom_highbd_h_predictor_16x4 = aom_highbd_h_predictor_16x4_avx2;
-        aom_highbd_h_predictor_16x64 = aom_highbd_h_predictor_16x64_c;
-        if (flags & HAS_AVX2) aom_highbd_h_predictor_16x64 = aom_highbd_h_predictor_16x64_avx2;
-        aom_highbd_h_predictor_32x64 = aom_highbd_h_predictor_32x64_c;
-        if (flags & HAS_AVX2) aom_highbd_h_predictor_32x64 = aom_highbd_h_predictor_32x64_avx2;
-        aom_highbd_h_predictor_32x8 = aom_highbd_h_predictor_32x8_c;
-        if (flags & HAS_AVX2) aom_highbd_h_predictor_32x8 = aom_highbd_h_predictor_32x8_avx2;
-        aom_highbd_h_predictor_4x16 = aom_highbd_h_predictor_4x16_c;
-        if (flags & HAS_SSE2) aom_highbd_h_predictor_4x16 = aom_highbd_h_predictor_4x16_sse2;
-        aom_highbd_h_predictor_64x16 = aom_highbd_h_predictor_64x16_c;
-        if (flags & HAS_AVX2) aom_highbd_h_predictor_64x16 = aom_highbd_h_predictor_64x16_avx2;
-        aom_highbd_h_predictor_64x32 = aom_highbd_h_predictor_64x32_c;
-        if (flags & HAS_AVX2) aom_highbd_h_predictor_64x32 = aom_highbd_h_predictor_64x32_avx2;
-        aom_highbd_h_predictor_8x32 = aom_highbd_h_predictor_8x32_c;
-        if (flags & HAS_SSE2) aom_highbd_h_predictor_8x32 = aom_highbd_h_predictor_8x32_sse2;
-        aom_highbd_h_predictor_64x64 = aom_highbd_h_predictor_64x64_c;
-        if (flags & HAS_AVX2) aom_highbd_h_predictor_64x64 = aom_highbd_h_predictor_64x64_avx2;
 
         // aom_highbd_v_predictor
+        aom_highbd_v_predictor_16x16 = aom_highbd_v_predictor_16x16_c;
+        if (flags & HAS_AVX2) aom_highbd_v_predictor_16x16 = aom_highbd_v_predictor_16x16_avx2;
+        aom_highbd_v_predictor_16x32 = aom_highbd_v_predictor_16x32_c;
+        if (flags & HAS_AVX2) aom_highbd_v_predictor_16x32 = aom_highbd_v_predictor_16x32_avx2;
         aom_highbd_v_predictor_16x4 = aom_highbd_v_predictor_16x4_c;
         if (flags & HAS_AVX2) aom_highbd_v_predictor_16x4 = aom_highbd_v_predictor_16x4_avx2;
         aom_highbd_v_predictor_16x64 = aom_highbd_v_predictor_16x64_c;
         if (flags & HAS_AVX2) aom_highbd_v_predictor_16x64 = aom_highbd_v_predictor_16x64_avx2;
+        aom_highbd_v_predictor_16x8 = aom_highbd_v_predictor_16x8_c;
+        if (flags & HAS_AVX2) aom_highbd_v_predictor_16x8 = aom_highbd_v_predictor_16x8_avx2;
+        aom_highbd_v_predictor_2x2 = aom_highbd_v_predictor_2x2_c;
+        aom_highbd_v_predictor_32x16 = aom_highbd_v_predictor_32x16_c;
+        if (flags & HAS_AVX2) aom_highbd_v_predictor_32x16 = aom_highbd_v_predictor_32x16_avx2;
+        aom_highbd_v_predictor_32x32 = aom_highbd_v_predictor_32x32_c;
+        if (flags & HAS_AVX2) aom_highbd_v_predictor_32x32 = aom_highbd_v_predictor_32x32_avx2;
         aom_highbd_v_predictor_32x64 = aom_highbd_v_predictor_32x64_c;
         if (flags & HAS_AVX2) aom_highbd_v_predictor_32x64 = aom_highbd_v_predictor_32x64_avx2;
         aom_highbd_v_predictor_32x8 = aom_highbd_v_predictor_32x8_c;
         if (flags & HAS_AVX2) aom_highbd_v_predictor_32x8 = aom_highbd_v_predictor_32x8_avx2;
         aom_highbd_v_predictor_4x16 = aom_highbd_v_predictor_4x16_c;
         if (flags & HAS_SSE2) aom_highbd_v_predictor_4x16 = aom_highbd_v_predictor_4x16_sse2;
+        aom_highbd_v_predictor_4x4 = aom_highbd_v_predictor_4x4_c;
+        if (flags & HAS_SSE2) aom_highbd_v_predictor_4x4 = aom_highbd_v_predictor_4x4_sse2;
+        aom_highbd_v_predictor_4x8 = aom_highbd_v_predictor_4x8_c;
+        if (flags & HAS_SSE2) aom_highbd_v_predictor_4x8 = aom_highbd_v_predictor_4x8_sse2;
         aom_highbd_v_predictor_64x16 = aom_highbd_v_predictor_64x16_c;
         if (flags & HAS_AVX2) aom_highbd_v_predictor_64x16 = aom_highbd_v_predictor_64x16_avx2;
         aom_highbd_v_predictor_64x32 = aom_highbd_v_predictor_64x32_c;
@@ -2945,6 +2763,12 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         if (flags & HAS_SSE2) aom_highbd_v_predictor_8x32 = aom_highbd_v_predictor_8x32_sse2;
         aom_highbd_v_predictor_64x64 = aom_highbd_v_predictor_64x64_c;
         if (flags & HAS_AVX2) aom_highbd_v_predictor_64x64 = aom_highbd_v_predictor_64x64_avx2;
+        aom_highbd_v_predictor_8x16 = aom_highbd_v_predictor_8x16_c;
+        if (flags & HAS_SSE2) aom_highbd_v_predictor_8x16 = aom_highbd_v_predictor_8x16_sse2;
+        aom_highbd_v_predictor_8x4 = aom_highbd_v_predictor_8x4_c;
+        if (flags & HAS_SSE2) aom_highbd_v_predictor_8x4 = aom_highbd_v_predictor_8x4_sse2;
+        aom_highbd_v_predictor_8x8 = aom_highbd_v_predictor_8x8_c;
+        if (flags & HAS_SSE2) aom_highbd_v_predictor_8x8 = aom_highbd_v_predictor_8x8_sse2;
 
         //aom_highbd_smooth_predictor
         aom_highbd_smooth_predictor_16x16 = aom_highbd_smooth_predictor_16x16_c;
@@ -2957,6 +2781,7 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         if (flags & HAS_AVX2) aom_highbd_smooth_predictor_16x64 = aom_highbd_smooth_predictor_16x64_avx2;
         aom_highbd_smooth_predictor_16x8 = aom_highbd_smooth_predictor_16x8_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_predictor_16x8 = aom_highbd_smooth_predictor_16x8_avx2;
+        aom_highbd_smooth_predictor_2x2 = aom_highbd_smooth_predictor_2x2_c;
         aom_highbd_smooth_predictor_32x16 = aom_highbd_smooth_predictor_32x16_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_predictor_32x16 = aom_highbd_smooth_predictor_32x16_avx2;
         aom_highbd_smooth_predictor_32x32 = aom_highbd_smooth_predictor_32x32_c;
@@ -2997,6 +2822,7 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         if (flags & HAS_AVX2) aom_highbd_smooth_h_predictor_16x64 = aom_highbd_smooth_h_predictor_16x64_avx2;
         aom_highbd_smooth_h_predictor_16x8 = aom_highbd_smooth_h_predictor_16x8_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_h_predictor_16x8 = aom_highbd_smooth_h_predictor_16x8_avx2;
+        aom_highbd_smooth_h_predictor_2x2 = aom_highbd_smooth_h_predictor_2x2_c;
         aom_highbd_smooth_h_predictor_32x16 = aom_highbd_smooth_h_predictor_32x16_c;
         if (flags & HAS_AVX2) aom_highbd_smooth_h_predictor_32x16 = aom_highbd_smooth_h_predictor_32x16_avx2;
         aom_highbd_smooth_h_predictor_32x32 = aom_highbd_smooth_h_predictor_32x32_c;
@@ -3027,6 +2853,33 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         if (flags & HAS_AVX2) aom_highbd_smooth_h_predictor_8x8 = aom_highbd_smooth_h_predictor_8x8_avx2;
 
         //aom_highbd_dc_128_predictor
+        aom_highbd_dc_128_predictor_16x16 = aom_highbd_dc_128_predictor_16x16_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_16x16 = aom_highbd_dc_128_predictor_16x16_avx2;
+        aom_highbd_dc_128_predictor_16x32 = aom_highbd_dc_128_predictor_16x32_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_16x32 = aom_highbd_dc_128_predictor_16x32_avx2;
+        aom_highbd_dc_128_predictor_16x4 = aom_highbd_dc_128_predictor_16x4_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_16x4 = aom_highbd_dc_128_predictor_16x4_avx2;
+        aom_highbd_dc_128_predictor_16x64 = aom_highbd_dc_128_predictor_16x64_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_16x64 = aom_highbd_dc_128_predictor_16x64_avx2;
+        aom_highbd_dc_128_predictor_16x8 = aom_highbd_dc_128_predictor_16x8_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_16x8 = aom_highbd_dc_128_predictor_16x8_avx2;
+        aom_highbd_dc_128_predictor_2x2 = aom_highbd_dc_128_predictor_2x2_c;
+        aom_highbd_dc_128_predictor_32x16 = aom_highbd_dc_128_predictor_32x16_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_32x16 = aom_highbd_dc_128_predictor_32x16_avx2;
+        aom_highbd_dc_128_predictor_32x32 = aom_highbd_dc_128_predictor_32x32_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_32x32 = aom_highbd_dc_128_predictor_32x32_avx2;
+        aom_highbd_dc_128_predictor_32x64 = aom_highbd_dc_128_predictor_32x64_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_32x64 = aom_highbd_dc_128_predictor_32x64_avx2;
+        aom_highbd_dc_128_predictor_32x8 = aom_highbd_dc_128_predictor_32x8_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_32x8 = aom_highbd_dc_128_predictor_32x8_avx2;
+        aom_highbd_dc_128_predictor_4x16 = aom_highbd_dc_128_predictor_4x16_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_128_predictor_4x16 = aom_highbd_dc_128_predictor_4x16_sse2;
+        aom_highbd_dc_128_predictor_4x4 = aom_highbd_dc_128_predictor_4x4_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_128_predictor_4x4 = aom_highbd_dc_128_predictor_4x4_sse2;
+        aom_highbd_dc_128_predictor_4x8 = aom_highbd_dc_128_predictor_4x8_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_128_predictor_4x8 = aom_highbd_dc_128_predictor_4x8_sse2;
+        aom_highbd_dc_128_predictor_8x32 = aom_highbd_dc_128_predictor_8x32_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_128_predictor_8x32 = aom_highbd_dc_128_predictor_8x32_sse2;
         aom_highbd_dc_128_predictor_64x16 = aom_highbd_dc_128_predictor_64x16_c;
         if (flags & HAS_AVX2) aom_highbd_dc_128_predictor_64x16 = aom_highbd_dc_128_predictor_64x16_avx2;
         aom_highbd_dc_128_predictor_64x32 = aom_highbd_dc_128_predictor_64x32_c;
@@ -3041,20 +2894,168 @@ RTCD_EXTERN void(*av1_txb_init_levels)(const tran_low_t *const coeff, const int3
         if (flags & HAS_SSE2) aom_highbd_dc_128_predictor_8x8 = aom_highbd_dc_128_predictor_8x8_sse2;
 
         //aom_highbd_dc_left_predictor
+        aom_highbd_dc_left_predictor_16x16 = aom_highbd_dc_left_predictor_16x16_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_16x16 = aom_highbd_dc_left_predictor_16x16_avx2;
+        aom_highbd_dc_left_predictor_16x32 = aom_highbd_dc_left_predictor_16x32_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_16x32 = aom_highbd_dc_left_predictor_16x32_avx2;
+        aom_highbd_dc_left_predictor_16x4 = aom_highbd_dc_left_predictor_16x4_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_16x4 = aom_highbd_dc_left_predictor_16x4_avx2;
+        aom_highbd_dc_left_predictor_16x64 = aom_highbd_dc_left_predictor_16x64_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_16x64 = aom_highbd_dc_left_predictor_16x64_avx2;
+        aom_highbd_dc_left_predictor_16x8 = aom_highbd_dc_left_predictor_16x8_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_16x8 = aom_highbd_dc_left_predictor_16x8_avx2;
+        aom_highbd_dc_left_predictor_2x2 = aom_highbd_dc_left_predictor_2x2_c;
+        aom_highbd_dc_left_predictor_32x16 = aom_highbd_dc_left_predictor_32x16_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_32x16 = aom_highbd_dc_left_predictor_32x16_avx2;
+        aom_highbd_dc_left_predictor_32x32 = aom_highbd_dc_left_predictor_32x32_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_32x32 = aom_highbd_dc_left_predictor_32x32_avx2;
+        aom_highbd_dc_left_predictor_32x64 = aom_highbd_dc_left_predictor_32x64_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_32x64 = aom_highbd_dc_left_predictor_32x64_avx2;
+        aom_highbd_dc_left_predictor_32x8 = aom_highbd_dc_left_predictor_32x8_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_32x8 = aom_highbd_dc_left_predictor_32x8_avx2;
+        aom_highbd_dc_left_predictor_4x16 = aom_highbd_dc_left_predictor_4x16_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_left_predictor_4x16 = aom_highbd_dc_left_predictor_4x16_sse2;
+        aom_highbd_dc_left_predictor_4x4 = aom_highbd_dc_left_predictor_4x4_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_left_predictor_4x4 = aom_highbd_dc_left_predictor_4x4_sse2;
+        aom_highbd_dc_left_predictor_4x8 = aom_highbd_dc_left_predictor_4x8_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_left_predictor_4x8 = aom_highbd_dc_left_predictor_4x8_sse2;
+        aom_highbd_dc_left_predictor_8x32 = aom_highbd_dc_left_predictor_8x32_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_left_predictor_8x32 = aom_highbd_dc_left_predictor_8x32_sse2;
         aom_highbd_dc_left_predictor_64x16 = aom_highbd_dc_left_predictor_64x16_c;
         if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_64x16 = aom_highbd_dc_left_predictor_64x16_avx2;
         aom_highbd_dc_left_predictor_64x32 = aom_highbd_dc_left_predictor_64x32_c;
         if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_64x32 = aom_highbd_dc_left_predictor_64x32_avx2;
         aom_highbd_dc_left_predictor_64x64 = aom_highbd_dc_left_predictor_64x64_c;
         if (flags & HAS_AVX2) aom_highbd_dc_left_predictor_64x64 = aom_highbd_dc_left_predictor_64x64_avx2;
+        aom_highbd_dc_left_predictor_8x16 = aom_highbd_dc_left_predictor_8x16_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_left_predictor_8x16 = aom_highbd_dc_left_predictor_8x16_sse2;
+        aom_highbd_dc_left_predictor_8x4 = aom_highbd_dc_left_predictor_8x4_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_left_predictor_8x4 = aom_highbd_dc_left_predictor_8x4_sse2;
+        aom_highbd_dc_left_predictor_8x8 = aom_highbd_dc_left_predictor_8x8_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_left_predictor_8x8 = aom_highbd_dc_left_predictor_8x8_sse2;
+
+
+        aom_highbd_dc_predictor_16x16 = aom_highbd_dc_predictor_16x16_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_predictor_16x16 = aom_highbd_dc_predictor_16x16_avx2;
+        aom_highbd_dc_predictor_16x32 = aom_highbd_dc_predictor_16x32_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_predictor_16x32 = aom_highbd_dc_predictor_16x32_avx2;
+        aom_highbd_dc_predictor_16x4 = aom_highbd_dc_predictor_16x4_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_predictor_16x4 = aom_highbd_dc_predictor_16x4_avx2;
+        aom_highbd_dc_predictor_16x64 = aom_highbd_dc_predictor_16x64_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_predictor_16x64 = aom_highbd_dc_predictor_16x64_avx2;
+        aom_highbd_dc_predictor_16x8 = aom_highbd_dc_predictor_16x8_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_predictor_16x8 = aom_highbd_dc_predictor_16x8_avx2;
+        aom_highbd_dc_predictor_2x2 = aom_highbd_dc_predictor_2x2_c;
+        aom_highbd_dc_predictor_32x16 = aom_highbd_dc_predictor_32x16_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_predictor_32x16 = aom_highbd_dc_predictor_32x16_avx2;
+        aom_highbd_dc_predictor_32x32 = aom_highbd_dc_predictor_32x32_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_predictor_32x32 = aom_highbd_dc_predictor_32x32_avx2;
+        aom_highbd_dc_predictor_32x64 = aom_highbd_dc_predictor_32x64_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_predictor_32x64 = aom_highbd_dc_predictor_32x64_avx2;
+        aom_highbd_dc_predictor_32x8 = aom_highbd_dc_predictor_32x8_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_predictor_32x8 = aom_highbd_dc_predictor_32x8_avx2;
+        aom_highbd_dc_predictor_4x16 = aom_highbd_dc_predictor_4x16_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_predictor_4x16 = aom_highbd_dc_predictor_4x16_sse2;
+        aom_highbd_dc_predictor_4x4 = aom_highbd_dc_predictor_4x4_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_predictor_4x4 = aom_highbd_dc_predictor_4x4_sse2;
+        aom_highbd_dc_predictor_4x8 = aom_highbd_dc_predictor_4x8_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_predictor_4x8 = aom_highbd_dc_predictor_4x8_sse2;
+        aom_highbd_dc_predictor_64x16 = aom_highbd_dc_predictor_64x16_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_predictor_64x16 = aom_highbd_dc_predictor_64x16_avx2;
+        aom_highbd_dc_predictor_64x32 = aom_highbd_dc_predictor_64x32_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_predictor_64x32 = aom_highbd_dc_predictor_64x32_avx2;
+        aom_highbd_dc_predictor_64x64 = aom_highbd_dc_predictor_64x64_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_predictor_64x64 = aom_highbd_dc_predictor_64x64_avx2;
+        aom_highbd_dc_predictor_8x16 = aom_highbd_dc_predictor_8x16_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_predictor_8x16 = aom_highbd_dc_predictor_8x16_sse2;
+        aom_highbd_dc_predictor_8x4 = aom_highbd_dc_predictor_8x4_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_predictor_8x4 = aom_highbd_dc_predictor_8x4_sse2;
+        aom_highbd_dc_predictor_8x8 = aom_highbd_dc_predictor_8x8_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_predictor_8x8 = aom_highbd_dc_predictor_8x8_sse2;
+        aom_highbd_dc_predictor_8x32 = aom_highbd_dc_predictor_8x32_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_predictor_8x32 = aom_highbd_dc_predictor_8x32_sse2;
 
         //aom_highbd_dc_top_predictor
+        aom_highbd_dc_top_predictor_16x16 = aom_highbd_dc_top_predictor_16x16_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_16x16 = aom_highbd_dc_top_predictor_16x16_avx2;
+        aom_highbd_dc_top_predictor_16x32 = aom_highbd_dc_top_predictor_16x32_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_16x32 = aom_highbd_dc_top_predictor_16x32_avx2;
+        aom_highbd_dc_top_predictor_16x4 = aom_highbd_dc_top_predictor_16x4_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_16x4 = aom_highbd_dc_top_predictor_16x4_avx2;
+        aom_highbd_dc_top_predictor_16x64 = aom_highbd_dc_top_predictor_16x64_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_16x64 = aom_highbd_dc_top_predictor_16x64_avx2;
+        aom_highbd_dc_top_predictor_16x8 = aom_highbd_dc_top_predictor_16x8_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_16x8 = aom_highbd_dc_top_predictor_16x8_avx2;
+        aom_highbd_dc_top_predictor_2x2 = aom_highbd_dc_top_predictor_2x2_c;
+        aom_highbd_dc_top_predictor_32x16 = aom_highbd_dc_top_predictor_32x16_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_32x16 = aom_highbd_dc_top_predictor_32x16_avx2;
+        aom_highbd_dc_top_predictor_32x32 = aom_highbd_dc_top_predictor_32x32_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_32x32 = aom_highbd_dc_top_predictor_32x32_avx2;
+        aom_highbd_dc_top_predictor_32x64 = aom_highbd_dc_top_predictor_32x64_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_32x64 = aom_highbd_dc_top_predictor_32x64_avx2;
+        aom_highbd_dc_top_predictor_32x8 = aom_highbd_dc_top_predictor_32x8_c;
+        if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_32x8 = aom_highbd_dc_top_predictor_32x8_avx2;
+        aom_highbd_dc_top_predictor_4x16 = aom_highbd_dc_top_predictor_4x16_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_top_predictor_4x16 = aom_highbd_dc_top_predictor_4x16_sse2;
+        aom_highbd_dc_top_predictor_4x4 = aom_highbd_dc_top_predictor_4x4_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_top_predictor_4x4 = aom_highbd_dc_top_predictor_4x4_sse2;
+        aom_highbd_dc_top_predictor_4x8 = aom_highbd_dc_top_predictor_4x8_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_top_predictor_4x8 = aom_highbd_dc_top_predictor_4x8_sse2;
         aom_highbd_dc_top_predictor_64x16 = aom_highbd_dc_top_predictor_64x16_c;
         if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_64x16 = aom_highbd_dc_top_predictor_64x16_avx2;
         aom_highbd_dc_top_predictor_64x32 = aom_highbd_dc_top_predictor_64x32_c;
         if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_64x32 = aom_highbd_dc_top_predictor_64x32_avx2;
         aom_highbd_dc_top_predictor_64x64 = aom_highbd_dc_top_predictor_64x64_c;
         if (flags & HAS_AVX2) aom_highbd_dc_top_predictor_64x64 = aom_highbd_dc_top_predictor_64x64_avx2;
+        aom_highbd_dc_top_predictor_8x16 = aom_highbd_dc_top_predictor_8x16_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_top_predictor_8x16 = aom_highbd_dc_top_predictor_8x16_sse2;
+        if (flags & HAS_SSE2) aom_highbd_dc_top_predictor_8x32 = aom_highbd_dc_top_predictor_8x32_c;
+        aom_highbd_dc_top_predictor_8x4 = aom_highbd_dc_top_predictor_8x4_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_top_predictor_8x4 = aom_highbd_dc_top_predictor_8x4_sse2;
+        aom_highbd_dc_top_predictor_8x8 = aom_highbd_dc_top_predictor_8x8_c;
+        if (flags & HAS_SSE2) aom_highbd_dc_top_predictor_8x8 = aom_highbd_dc_top_predictor_8x8_sse2;
+
+
+        // aom_highbd_h_predictor
+        aom_highbd_h_predictor_16x4 = aom_highbd_h_predictor_16x4_c;
+        if (flags & HAS_AVX2) aom_highbd_h_predictor_16x4 = aom_highbd_h_predictor_16x4_avx2;
+        aom_highbd_h_predictor_16x64 = aom_highbd_h_predictor_16x64_c;
+        if (flags & HAS_AVX2) aom_highbd_h_predictor_16x64 = aom_highbd_h_predictor_16x64_avx2;
+        aom_highbd_h_predictor_16x8 = aom_highbd_h_predictor_16x8_c;
+        if (flags & HAS_SSE2) aom_highbd_h_predictor_16x8 = aom_highbd_h_predictor_16x8_sse2;
+        aom_highbd_h_predictor_2x2 = aom_highbd_h_predictor_2x2_c;
+        aom_highbd_h_predictor_32x16 = aom_highbd_h_predictor_32x16_c;
+        if (flags & HAS_SSE2) aom_highbd_h_predictor_32x16 = aom_highbd_h_predictor_32x16_sse2;
+        aom_highbd_h_predictor_32x32 = aom_highbd_h_predictor_32x32_c;
+        if (flags & HAS_SSE2) aom_highbd_h_predictor_32x32 = aom_highbd_h_predictor_32x32_sse2;
+        aom_highbd_h_predictor_32x64 = aom_highbd_h_predictor_32x64_c;
+        if (flags & HAS_AVX2) aom_highbd_h_predictor_32x64 = aom_highbd_h_predictor_32x64_avx2;
+        aom_highbd_h_predictor_32x8 = aom_highbd_h_predictor_32x8_c;
+        if (flags & HAS_AVX2) aom_highbd_h_predictor_32x8 = aom_highbd_h_predictor_32x8_avx2;
+        aom_highbd_h_predictor_4x16 = aom_highbd_h_predictor_4x16_c;
+        if (flags & HAS_SSE2) aom_highbd_h_predictor_4x16 = aom_highbd_h_predictor_4x16_sse2;
+        aom_highbd_h_predictor_4x4 = aom_highbd_h_predictor_4x4_c;
+        if (flags & HAS_SSE2) aom_highbd_h_predictor_4x4 = aom_highbd_h_predictor_4x4_sse2;
+        aom_highbd_h_predictor_4x8 = aom_highbd_h_predictor_4x8_c;
+        if (flags & HAS_SSE2) aom_highbd_h_predictor_4x8 = aom_highbd_h_predictor_4x8_sse2;
+        aom_highbd_h_predictor_64x16 = aom_highbd_h_predictor_64x16_c;
+        if (flags & HAS_AVX2) aom_highbd_h_predictor_64x16 = aom_highbd_h_predictor_64x16_avx2;
+        aom_highbd_h_predictor_64x32 = aom_highbd_h_predictor_64x32_c;
+        if (flags & HAS_AVX2) aom_highbd_h_predictor_64x32 = aom_highbd_h_predictor_64x32_avx2;
+        aom_highbd_h_predictor_8x32 = aom_highbd_h_predictor_8x32_c;
+        if (flags & HAS_SSE2) aom_highbd_h_predictor_8x32 = aom_highbd_h_predictor_8x32_sse2;
+        aom_highbd_h_predictor_64x64 = aom_highbd_h_predictor_64x64_c;
+        if (flags & HAS_AVX2) aom_highbd_h_predictor_64x64 = aom_highbd_h_predictor_64x64_avx2;
+        aom_highbd_h_predictor_8x16 = aom_highbd_h_predictor_8x16_c;
+        if (flags & HAS_SSE2) aom_highbd_h_predictor_8x16 = aom_highbd_h_predictor_8x16_sse2;
+        aom_highbd_h_predictor_8x4 = aom_highbd_h_predictor_8x4_c;
+        if (flags & HAS_SSE2) aom_highbd_h_predictor_8x4 = aom_highbd_h_predictor_8x4_sse2;
+        aom_highbd_h_predictor_8x8 = aom_highbd_h_predictor_8x8_c;
+        if (flags & HAS_SSE2) aom_highbd_h_predictor_8x8 = aom_highbd_h_predictor_8x8_sse2;
+        aom_highbd_h_predictor_16x16 = aom_highbd_h_predictor_16x16_c;
+        if (flags & HAS_SSE2) aom_highbd_h_predictor_16x16 = aom_highbd_h_predictor_16x16_sse2;
+        aom_highbd_h_predictor_16x32 = aom_highbd_h_predictor_16x32_c;
+        if (flags & HAS_SSE2) aom_highbd_h_predictor_16x32 = aom_highbd_h_predictor_16x32_sse2;
 
 #endif
         aom_fft2x2_float = aom_fft2x2_float_c;

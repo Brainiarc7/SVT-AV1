@@ -388,6 +388,7 @@ void av1_highbd_quantize_b_facade(const tran_low_t *coeff_ptr,
     }
 }
 
+/*
 static INLINE void highbd_quantize_dc(
     const tran_low_t *coeff_ptr, int32_t n_coeffs, int32_t skip_block,
     const int16_t *round_ptr, const int16_t quant, tran_low_t *qcoeff_ptr,
@@ -418,6 +419,7 @@ static INLINE void highbd_quantize_dc(
     }
     *eob_ptr = (uint16_t)(eob + 1);
 }
+*/
 
 #endif
 #if !QT_10BIT_SUPPORT
@@ -1189,11 +1191,16 @@ void ProductFullLoopTxSearch(
     for (int32_t tx_type_index = txk_start; tx_type_index < txk_end; ++tx_type_index) {
         tx_type = (TxType)tx_type_index;
         if (!allowed_tx_mask[tx_type]) continue;
+#if TX_SEARCH_LEVELS
+        if (picture_control_set_ptr->parent_pcs_ptr->tx_search_reduced_set)
+            if (!allowed_tx_set_a[txSize][tx_type]) continue;
+#else
 #if FAST_TX_SEARCH
 #if ENCODER_MODE_CLEANUP
         if (picture_control_set_ptr->enc_mode == ENC_M1)
 #endif
          if (!allowed_tx_set_a[txSize][tx_type]) continue;
+#endif
 #endif
         context_ptr->three_quad_energy = 0;
         uint32_t txb_itr = 0;
@@ -1400,11 +1407,16 @@ void encode_pass_tx_search(
     for (int32_t tx_type_index = txk_start; tx_type_index < txk_end; ++tx_type_index) {
         tx_type = (TxType)tx_type_index;
 
+#if TX_SEARCH_LEVELS
+        if(picture_control_set_ptr->parent_pcs_ptr->tx_search_reduced_set)
+            if (!allowed_tx_set_a[txSize][tx_type]) continue;
+#else
 #if FAST_TX_SEARCH
 #if ENCODER_MODE_CLEANUP
         if (picture_control_set_ptr->enc_mode == ENC_M1)
 #endif
             if (!allowed_tx_set_a[txSize][tx_type]) continue;
+#endif
 #endif
         const int32_t eset = get_ext_tx_set(txSize, is_inter, picture_control_set_ptr->parent_pcs_ptr->reduced_tx_set_used);
         // eset == 0 should correspond to a set with only DCT_DCT and there
@@ -1600,11 +1612,16 @@ void encode_pass_tx_search_hbd(
     for (int32_t tx_type_index = txk_start; tx_type_index < txk_end; ++tx_type_index) {
         tx_type = (TxType)tx_type_index;
         ////if (!allowed_tx_mask[tx_type]) continue;
+#if TX_SEARCH_LEVELS
+        if (picture_control_set_ptr->parent_pcs_ptr->tx_search_reduced_set)
+            if (!allowed_tx_set_a[txSize][tx_type]) continue;
+#else
 #if FAST_TX_SEARCH
 #if ENCODER_MODE_CLEANUP
         if (picture_control_set_ptr->enc_mode == ENC_M1 )
 #endif
             if (!allowed_tx_set_a[txSize][tx_type]) continue;
+#endif
 #endif
         const int32_t eset = get_ext_tx_set(txSize, is_inter, picture_control_set_ptr->parent_pcs_ptr->reduced_tx_set_used);
         // eset == 0 should correspond to a set with only DCT_DCT and there

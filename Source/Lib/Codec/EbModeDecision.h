@@ -33,7 +33,9 @@ extern "C" {
     **************************************/
     typedef EbErrorType(*EB_PREDICTION_FUNC)(
         struct ModeDecisionContext_s           *context_ptr,
+#if !CHROMA_BLIND
         uint32_t                                component_mask,
+#endif
         PictureControlSet_t                    *picture_control_set_ptr,
         struct ModeDecisionCandidateBuffer_s   *candidate_buffer_ptr,
         EbAsm                                   asm_type);
@@ -275,6 +277,9 @@ extern "C" {
         uint32_t                       *full_candidate_total_count_ptr,
         uint8_t                        *best_candidate_index_array,
         uint8_t                        *disable_merge_index,
+#if TX_SEARCH_LEVELS
+        uint64_t                       *ref_fast_cost,
+#endif
         EbBool                          same_fast_full_candidate);
 
     typedef EbErrorType(*EB_INTRA_4x4_FAST_LUMA_COST_FUNC)(

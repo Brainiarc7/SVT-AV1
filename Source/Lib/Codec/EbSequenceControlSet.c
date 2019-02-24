@@ -317,6 +317,15 @@ EbErrorType copy_sequence_control_set(
         dst->enc_dec_segment_col_count_array[i] = src->enc_dec_segment_col_count_array[i];
         dst->enc_dec_segment_row_count_array[i] = src->enc_dec_segment_row_count_array[i];
     }
+
+#if CDEF_M
+    dst->cdef_segment_column_count = src->cdef_segment_column_count;
+    dst->cdef_segment_row_count = src->cdef_segment_row_count;
+#endif
+#if REST_M
+    dst->rest_segment_column_count = src->rest_segment_column_count;
+    dst->rest_segment_row_count = src->rest_segment_row_count;
+#endif
     return EB_ErrorNone;
 }
 
@@ -478,7 +487,9 @@ extern EbErrorType sb_params_init(
                 EB_TRUE;
         }
 
-        for (md_scan_block_index = 0; md_scan_block_index < BLOCK_MAX_COUNT; md_scan_block_index++) {
+         uint16_t max_block_count = sequence_control_set_ptr->max_block_cnt;
+
+        for (md_scan_block_index = 0; md_scan_block_index < max_block_count; md_scan_block_index++) {
 
             const BlockGeom * blk_geom = Get_blk_geom_mds(md_scan_block_index);
 
@@ -531,9 +542,10 @@ EbErrorType sb_geom_init(SequenceControlSet_t * sequence_control_set_ptr)
                 1 :
                 0);
 
+        
+        uint16_t max_block_count = sequence_control_set_ptr->max_block_cnt;
 
-
-        for (md_scan_block_index = 0; md_scan_block_index < BLOCK_MAX_COUNT; md_scan_block_index++) {
+        for (md_scan_block_index = 0; md_scan_block_index < max_block_count ; md_scan_block_index++) {
 
             const BlockGeom * blk_geom = Get_blk_geom_mds(md_scan_block_index);
 

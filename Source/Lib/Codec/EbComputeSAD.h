@@ -90,6 +90,17 @@ extern "C" {
         uint32_t  *p_best_mv64x64,
         uint32_t   mv);
 
+    typedef uint32_t(*CombinedAveragingSsd)(
+        uint8_t   *src,
+        ptrdiff_t  src_stride,
+        uint8_t   *ref1,
+        ptrdiff_t  ref1_stride,
+        uint8_t   *ref2,
+        ptrdiff_t  ref2_stride,
+        uint32_t   height,
+        uint32_t   width
+        );
+
     /***************************************
     * Function Tables
     ***************************************/
@@ -97,7 +108,7 @@ extern "C" {
     {
         // NON_AVX2
         {
-            /*0 4xM  */ Compute4xMSadSub_SSE2_INTRIN,
+            /*0 4xM  */ Compute4xMSadSub_AVX2_INTRIN,
             /*1 8xM  */ FastLoop_NxMSadKernel,
             /*2 16xM */ FastLoop_NxMSadKernel,
             /*3 24xM */ FastLoop_NxMSadKernel,
@@ -110,7 +121,7 @@ extern "C" {
         },
         // AVX2
         {
-            /*0 4xM  */ Compute4xMSadSub_SSE2_INTRIN,
+            /*0 4xM  */ Compute4xMSadSub_AVX2_INTRIN,
             /*1 8xM  */ Compute8xMSad_AVX2_INTRIN,
             /*2 16xM */ Compute16xMSad_AVX2_INTRIN,
             /*3 24xM */ FastLoop_NxMSadKernel,
@@ -209,6 +220,24 @@ extern "C" {
         GetEightHorizontalSearchPointResults_32x32_64x64_PU_SSE41_INTRIN,
         // AVX2
         GetEightHorizontalSearchPointResults_32x32_64x64_PU_AVX2_INTRIN,
+    };
+
+    uint32_t combined_averaging_ssd_c(
+        uint8_t   *src,
+        ptrdiff_t  src_stride,
+        uint8_t   *ref1,
+        ptrdiff_t  ref1_stride,
+        uint8_t   *ref2,
+        ptrdiff_t  ref2_stride,
+        uint32_t   height,
+        uint32_t   width);
+
+    static CombinedAveragingSsd FUNC_TABLE combined_averaging_ssd_func_ptr_array[ASM_TYPE_TOTAL] =
+    {
+        // NON_AVX2
+        combined_averaging_ssd_c,
+        // AVX2
+        combined_averaging_ssd_avx2,
     };
 
 #ifdef __cplusplus

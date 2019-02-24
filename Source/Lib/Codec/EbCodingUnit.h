@@ -212,17 +212,17 @@ extern "C" {
         int32_t mi_row_start, mi_row_end;
         int32_t mi_col_start, mi_col_end;
         int32_t tg_horz_boundary;
+#if TILES
+        int32_t tile_row;
+        int32_t tile_col;
+#endif
     } TileInfo;
     typedef struct MacroBlockD {
         // block dimension in the unit of mode_info.
         uint8_t n8_w, n8_h;
-        uint8_t n4_w, n4_h;  // TODO: this is for warped motion, for now
+        uint8_t n4_w, n4_h;  // for warped motion
         uint8_t ref_mv_count[MODE_CTX_REF_FRAMES];
-#if MEM_RED2
         CandidateMv final_ref_mv_stack[MAX_REF_MV_STACK_SIZE];       
-#else
-        CandidateMv ref_mv_stack[MODE_CTX_REF_FRAMES][MAX_REF_MV_STACK_SIZE];
-#endif
         uint8_t is_sec_rect;
         int32_t up_available;
         int32_t left_available;
@@ -343,9 +343,6 @@ extern "C" {
     } EdgeLcuResults_t;
     typedef struct LargestCodingUnit_s {
         struct PictureControlSet_s     *picture_control_set_ptr;
-#if !MEM_RED
-        CodingUnit_t                  **coded_leaf_array_ptr;
-#endif
         CodingUnit_t                   *final_cu_arr;
         uint32_t                        tot_final_cu;
         PartitionType                  *cu_partition_array;
@@ -355,8 +352,6 @@ extern "C" {
 #if !ADD_DELTA_QP_SUPPORT
         unsigned                        qp                      : 8;
 #endif                                                          
-        unsigned                        size                    : 8;
-        unsigned                        size_log2               : 3;
         unsigned                        picture_left_edge_flag  : 1;
         unsigned                        picture_top_edge_flag   : 1;
         unsigned                        picture_right_edge_flag : 1;
@@ -375,14 +370,15 @@ extern "C" {
 
         // Quantized Coefficients
         EbPictureBufferDesc_t          *quantized_coeff;
+#if TILES
+        TileInfo tile_info;
+#endif
 
     } LargestCodingUnit_t;
 
     extern EbErrorType largest_coding_unit_ctor(
         LargestCodingUnit_t          **larget_coding_unit_dbl_ptr,
         uint8_t                        sb_sz,
-        uint32_t                       picture_width,
-        uint32_t                       picture_height,
         uint16_t                       sb_origin_x,
         uint16_t                       sb_origin_y,
         uint16_t                       sb_index,

@@ -362,91 +362,6 @@ const int8_t av1_nz_map_ctx_offset[TX_SIZES_ALL][5][5] = {
     { 16, 16, 21, 21, 21 } }
 };
 
-static const uint8_t clip_max3[256] = {
-    0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
-};
-
-static INLINE int32_t get_nz_mag(const uint8_t *const levels, const int32_t bwl,
-    const TX_CLASS tx_class) {
-    int32_t mag;
-
-    // Note: AOMMIN(level, 3) is useless for decoder since level < 3.
-    mag = clip_max3[levels[1]];                         // { 0, 1 }
-    mag += clip_max3[levels[(1 << bwl) + TX_PAD_HOR]];  // { 1, 0 }
-
-    if (tx_class == TX_CLASS_2D) {
-        mag += clip_max3[levels[(1 << bwl) + TX_PAD_HOR + 1]];          // { 1, 1 }
-        mag += clip_max3[levels[2]];                                    // { 0, 2 }
-        mag += clip_max3[levels[(2 << bwl) + (2 << TX_PAD_HOR_LOG2)]];  // { 2, 0 }
-    }
-    else if (tx_class == TX_CLASS_VERT) {
-        mag += clip_max3[levels[(2 << bwl) + (2 << TX_PAD_HOR_LOG2)]];  // { 2, 0 }
-        mag += clip_max3[levels[(3 << bwl) + (3 << TX_PAD_HOR_LOG2)]];  // { 3, 0 }
-        mag += clip_max3[levels[(4 << bwl) + (4 << TX_PAD_HOR_LOG2)]];  // { 4, 0 }
-    }
-    else {
-        mag += clip_max3[levels[2]];  // { 0, 2 }
-        mag += clip_max3[levels[3]];  // { 0, 3 }
-        mag += clip_max3[levels[4]];  // { 0, 4 }
-    }
-
-    return mag;
-}
-
-static INLINE int32_t get_padded_idx(const int32_t idx, const int32_t bwl) {
-    return idx + ((idx >> bwl) << TX_PAD_HOR_LOG2);
-}
-
-static INLINE int32_t get_nz_map_ctx_from_stats(
-    const int32_t stats,
-    const int32_t coeff_idx,  // raster order
-    const int32_t bwl, const TxSize tx_size, const TX_CLASS tx_class) {
-    const int32_t row = coeff_idx >> bwl;
-    const int32_t col = coeff_idx - (row << bwl);
-    int32_t ctx = (stats + 1) >> 1;
-    ctx = AOMMIN(ctx, 4);
-
-    if (tx_class == TX_CLASS_2D) {
-        if (row == 0 && col == 0) return 0;
-
-        return ctx + av1_nz_map_ctx_offset[tx_size][AOMMIN(row, 4)][AOMMIN(col, 4)];
-    }
-    else {
-        static const int32_t pos_to_offset[3] = {
-            SIG_COEF_CONTEXTS_2D, SIG_COEF_CONTEXTS_2D + 5, SIG_COEF_CONTEXTS_2D + 10
-        };
-        const int32_t idx = (tx_class == TX_CLASS_VERT) ? row : col;
-        const int32_t *map = pos_to_offset;
-        return ctx + map[AOMMIN(idx, 2)];
-    }
-}
-
-static INLINE int32_t get_nz_map_ctx(const uint8_t *const levels,
-    const int32_t coeff_idx, const int32_t bwl,
-    const int32_t height, const int32_t scan_idx,
-    const int32_t is_eob, const TxSize tx_size,
-    const TX_CLASS tx_class) {
-    if (is_eob) {
-        if (scan_idx == 0) return 0;
-        if (scan_idx <= (height << bwl) / 8) return 1;
-        if (scan_idx <= (height << bwl) / 4) return 2;
-        return 3;
-    }
-    //const TX_CLASS tx_class = tx_type_to_class[tx_type];
-    const int32_t stats =
-        get_nz_mag(levels + get_padded_idx(coeff_idx, bwl), bwl, tx_class);
-    return get_nz_map_ctx_from_stats(stats, coeff_idx, bwl, tx_size, tx_class);
-}
-
 static INLINE int32_t get_br_ctx(const uint8_t *const levels,
     const int32_t c,  // raster order
     const int32_t bwl, const TxType tx_type) {
@@ -1119,11 +1034,7 @@ EbErrorType Av1InterFastCost(
             for (idx = 0; idx < 2; ++idx) {
                 if (cu_ptr->av1xd->ref_mv_count[candidate_ptr->ref_frame_type] > idx + 1) {
                     uint8_t drl1Ctx =
-#if MEM_RED2
                         av1_drl_ctx(context_ptr->md_local_cu_unit[context_ptr->blk_geom->blkidx_mds].ed_ref_mv_stack[candidate_ptr->ref_frame_type], idx);
-#else
-                        av1_drl_ctx(cu_ptr->av1xd->ref_mv_stack[candidate_ptr->ref_frame_type], idx);
-#endif
 
                     interModeBitsNum += candidate_buffer_ptr->candidate_ptr->md_rate_estimation_ptr->drlModeFacBits[drl1Ctx][candidate_ptr->drl_index != idx];
                     if (candidate_ptr->drl_index == idx) break;
@@ -1137,11 +1048,7 @@ EbErrorType Av1InterFastCost(
             for (idx = 1; idx < 3; ++idx) {
                 if (cu_ptr->av1xd->ref_mv_count[candidate_ptr->ref_frame_type] > idx + 1) {
                     uint8_t drl_ctx =
-#if MEM_RED2
                         av1_drl_ctx(context_ptr->md_local_cu_unit[context_ptr->blk_geom->blkidx_mds].ed_ref_mv_stack[candidate_ptr->ref_frame_type], idx);
-#else
-                        av1_drl_ctx(cu_ptr->av1xd->ref_mv_stack[candidate_ptr->ref_frame_type], idx);
-#endif
 
                     interModeBitsNum += candidate_buffer_ptr->candidate_ptr->md_rate_estimation_ptr->drlModeFacBits[drl_ctx][candidate_ptr->drl_index != (idx - 1)];
 
@@ -1274,10 +1181,8 @@ EbErrorType Av1InterFastCost(
         MOTION_MODE motion_mode_rd = candidate_buffer_ptr->candidate_ptr->motion_mode;
         BlockSize bsize = context_ptr->blk_geom->bsize;
 
-        cu_ptr->prediction_unit_array[0].overlappable_neighbors[0] = 1;
-        cu_ptr->prediction_unit_array[0].overlappable_neighbors[1] = 1;
-
-        MOTION_MODE motion_allowed =  motion_mode_allowed(
+        cu_ptr->prediction_unit_array[0].num_proj_ref = candidate_buffer_ptr->candidate_ptr->num_proj_ref;
+        MOTION_MODE last_motion_mode_allowed = motion_mode_allowed(
             picture_control_set_ptr,
             cu_ptr,
             bsize,
@@ -1285,10 +1190,11 @@ EbErrorType Av1InterFastCost(
             rf[1],
             inter_mode);
 
-        switch (motion_allowed) {
+        switch (last_motion_mode_allowed) {
         case SIMPLE_TRANSLATION: break;
         case OBMC_CAUSAL:
-            interModeBitsNum += candidate_buffer_ptr->candidate_ptr->md_rate_estimation_ptr->motionModeFacBits1[bsize][SIMPLE_TRANSLATION]; // TODO: modify when OBMC added
+            assert(motion_mode_rd == SIMPLE_TRANSLATION); // TODO: remove when OBMC added
+            interModeBitsNum += candidate_buffer_ptr->candidate_ptr->md_rate_estimation_ptr->motionModeFacBits1[bsize][motion_mode_rd];
             break;
         default:
             interModeBitsNum += candidate_buffer_ptr->candidate_ptr->md_rate_estimation_ptr->motionModeFacBits[bsize][motion_mode_rd];
@@ -2004,7 +1910,12 @@ void CodingLoopContextGeneration(
             &cu_ptr->luma_txb_skip_context,
             &cu_ptr->luma_dc_sign_context);
 
+
+#if CHROMA_BLIND
+        if (context_ptr->blk_geom->has_uv && context_ptr->chroma_level == CHROMA_MODE_0) {
+#else
         if (context_ptr->blk_geom->has_uv) {
+#endif
             GetTxbCtx(
                 COMPONENT_CHROMA,
                 cb_dc_sign_level_coeff_neighbor_array,

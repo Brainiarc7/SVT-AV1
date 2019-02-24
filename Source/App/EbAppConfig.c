@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "EbAppConfig.h"
+#include "EbAppInputy4m.h"
 
 #ifdef _WIN32
 #else
@@ -88,6 +89,10 @@
 #define TEMPORAL_ID                        "-temporal-id" // no Eval
 #define LOOK_AHEAD_DIST_TOKEN           "-lad"
 #define SUPER_BLOCK_SIZE_TOKEN          "-sb-size"
+#if TILES
+#define TILE_ROW_TOKEN                   "-tile-rows"
+#define TILE_COL_TOKEN                   "-tile-columns"
+#endif
 #define SCENE_CHANGE_DETECTION_TOKEN    "-scd"
 #define INJECTOR_TOKEN                  "-inj"  // no Eval
 #define INJECTOR_FRAMERATE_TOKEN        "-inj-frm-rt" // no Eval
@@ -115,6 +120,7 @@
  **********************************/
 static void SetCfgInputFile                     (const char *value, EbConfig_t *cfg)
 {
+
     if (cfg->inputFile && cfg->inputFile != stdin) {
         fclose(cfg->inputFile);
     }
@@ -124,6 +130,16 @@ static void SetCfgInputFile                     (const char *value, EbConfig_t *
     else {
         FOPEN(cfg->inputFile, value, "rb");
     }
+
+    /* if input is a YUV4MPEG2 (y4m) file, read header and parse parameters */
+    if(cfg->inputFile!=NULL){
+        if(checkIfY4m(cfg) == EB_TRUE) {
+            cfg->y4mInput = EB_TRUE;
+        }
+    }else{
+        cfg->y4mInput = EB_FALSE;
+    }
+
 };
 static void SetCfgStreamFile                    (const char *value, EbConfig_t *cfg)
 {
@@ -177,6 +193,10 @@ static void SetDisableDlfFlag                   (const char *value, EbConfig_t *
 static void SetEnableLocalWarpedMotionFlag      (const char *value, EbConfig_t *cfg) {cfg->enable_warped_motion = (EbBool)strtoul(value, NULL, 0);};
 static void SetEnableHmeFlag                    (const char *value, EbConfig_t *cfg) {cfg->enableHmeFlag = (EbBool)strtoul(value, NULL, 0);};
 static void SetEnableHmeLevel0Flag              (const char *value, EbConfig_t *cfg) {cfg->enableHmeLevel0Flag = (EbBool)strtoul(value, NULL, 0);};
+#if TILES
+static void SetTileRow                          (const char *value, EbConfig_t *cfg) { cfg->tile_rows = strtoul(value, NULL, 0); };
+static void SetTileCol                          (const char *value, EbConfig_t *cfg) { cfg->tile_columns = strtoul(value, NULL, 0); };
+#endif
 static void SetSceneChangeDetection             (const char *value, EbConfig_t *cfg) {cfg->scene_change_detection = strtoul(value, NULL, 0);};
 static void SetLookAheadDistance                (const char *value, EbConfig_t *cfg) {cfg->look_ahead_distance = strtoul(value, NULL, 0);};
 static void SetRateControlMode                  (const char *value, EbConfig_t *cfg) {cfg->rateControlMode = strtoul(value, NULL, 0);};
@@ -283,6 +303,10 @@ config_entry_t config_entry[] = {
     { SINGLE_INPUT, HIERARCHICAL_LEVELS_TOKEN, "HierarchicalLevels", SetHierarchicalLevels },
     { SINGLE_INPUT, PRED_STRUCT_TOKEN, "PredStructure", SetCfgPredStructure },
 
+#if TILES
+     { SINGLE_INPUT, TILE_ROW_TOKEN, "TileRow", SetTileRow},
+     { SINGLE_INPUT, TILE_COL_TOKEN, "TileCol", SetTileCol},
+#endif
     // Rate Control
     { SINGLE_INPUT, SCENE_CHANGE_DETECTION_TOKEN, "SceneChangeDetection", SetSceneChangeDetection},
     { SINGLE_INPUT, QP_TOKEN, "QP", SetCfgQp },
@@ -403,10 +427,10 @@ void EbConfigCtor(EbConfig_t *config_ptr)
     config_ptr->max_qp_allowed                       = 63;
     config_ptr->min_qp_allowed                       = 0;
     config_ptr->base_layer_switch_mode               = 0;
-    config_ptr->encMode                              = 3;
+    config_ptr->encMode                              = MAX_ENC_PRESET;
     config_ptr->intraPeriod                          = -2;
     config_ptr->intraRefreshType                     = 1;
-    config_ptr->hierarchicalLevels                   = 3;
+    config_ptr->hierarchicalLevels                   = 4;
     config_ptr->predStructure                        = 2;
     config_ptr->disable_dlf_flag                     = EB_FALSE;
     config_ptr->enable_warped_motion                 = EB_FALSE;
@@ -496,6 +520,10 @@ void EbConfigCtor(EbConfig_t *config_ptr)
     config_ptr->targetSocket                         = 1;
     config_ptr->processedFrameCount                  = 0;
     config_ptr->processedByteCount                   = 0;
+#if TILES
+    config_ptr->tile_rows = 0;
+    config_ptr->tile_columns = 0;
+#endif
 
     return;
 }
@@ -982,6 +1010,7 @@ EbErrorType ReadCommandLine(
     uint32_t    index           = 0;
     int32_t             cmd_token_cnt   = 0;                        // total number of tokens
     int32_t             token_index     = -1;
+    int32_t ret_y4m;
 
     for (index = 0; index < MAX_CHANNEL_NUMBER; ++index){
         config_strings[index] = (char*)malloc(sizeof(char)*COMMAND_LINE_MAX_SIZE);
@@ -1042,6 +1071,21 @@ EbErrorType ReadCommandLine(
                         break;
                     }
                 }
+            }
+        }
+    }
+
+    /***************************************************************************************************/
+    /********************** Parse parameters from input file if in y4m format **************************/
+    /********************** overriding config file and command line inputs    **************************/
+    /***************************************************************************************************/
+
+    for (index = 0; index < numChannels; ++index) {
+        if ((configs[index])->y4mInput == EB_TRUE){
+            ret_y4m = readY4mHeader(configs[index]);
+            if(ret_y4m == EB_ErrorBadParameter){
+                printf("Error found when reading the y4m file parameters.\n");
+                return EB_ErrorBadParameter;
             }
         }
     }

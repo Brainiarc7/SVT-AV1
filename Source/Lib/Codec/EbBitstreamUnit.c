@@ -78,6 +78,7 @@ EbErrorType output_bitstream_rbsp_to_payload(
     EbByte write_byte_ptr;
 #if IVF_FRAME_HEADER_IN_LIB
     static uint64_t frame_count = 0;
+
 #endif
     // IVF data
     read_byte_ptr = (EbByte)bitstream_ptr->bufferBeginAv1;

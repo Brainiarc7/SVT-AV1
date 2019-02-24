@@ -217,6 +217,9 @@ typedef struct EbConfig_s
 
     FILE                    *qpFile;
 
+    EbBool                  y4mInput;
+    unsigned char           y4mBuf[9];
+
     EbBool                  use_qp_file;
 
     uint32_t                 frameRate;
@@ -318,6 +321,10 @@ typedef struct EbConfig_s
      ****************************************/
     EbBool                  constrained_intra;
 
+#if TILES
+    int32_t                  tile_columns;
+    int32_t                  tile_rows;
+#endif
 
     /****************************************
      * Rate Control
